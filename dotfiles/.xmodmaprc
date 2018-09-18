@@ -1,0 +1,4 @@
+! change capslock into escape, don't bother remapping it
+clear lock
+keycode 66 = Control_R
+add Control = Control_R
