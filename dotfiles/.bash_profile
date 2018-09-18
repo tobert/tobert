@@ -95,7 +95,8 @@ alias ls='ls --color=auto'
 alias ll='ls -alp --color=auto'
 alias grep='grep --colour=auto'
 
-if [ -z "$(which rbenv)" ] ; then
+if [ -d "${HOME}/.rbenv" ] ; then
+    export PATH="${PATH}:${HOME}/.rbenv/bin"
     eval "$(rbenv init -)"
 fi
 
