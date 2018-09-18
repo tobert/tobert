@@ -77,8 +77,11 @@ vi=$(which vi)
 
 if [ -n "$nvim" ] ; then
     export EDITOR=$nvim
+	alias vim=$nvim
+	alias vi=$nvim
 elif [ -n "$vim" ] ; then
     export EDITOR=$vim
+	alias vi=$vim
 elif [ -n "$vi" ] ; then
     echo "looks like we're stuck with plain 'vi', good luck!"
     export EDITOR=$vi
