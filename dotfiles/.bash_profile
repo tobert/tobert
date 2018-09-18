@@ -48,27 +48,22 @@ fi
 
 # SSH agent setup
 # this also gets picked up by some of my other tools like nssh
-RETVAL=2
-if [ -e "$HOME/.ssh-agent" ] ; then
+ssh-add -l >/dev/null 2>&1
+if [ $? -eq 0 ] ; then
+    # if SSH_AUTH_SOCK is set when this runs it might mean I'm ssh'ing into
+    # e.g. ops-shell with agent forwarding in which case I do not want to
+    # start ssh-agent and overwrite that, I want to rewrite that file!
+    echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK ; export SSH_AUTH_SOCK" > $HOME/.ssh-agent
+elif [ -e "$HOME/.ssh-agent" ] ; then
+    # no agent currently available, try loading ~/.ssh-agent
     . $HOME/.ssh-agent
-    # see if they're still valid by trying to list keys
-    ssh-add -l 2>/dev/null >/dev/null
-    RETVAL=$?
-fi
-# returns 2 if ssh-agent isn't running or it's broken
-if [ $RETVAL -eq 2 ] ; then
-    # make sure it's really dead
-    SSH_AGENT_PID=`ps -eo pid,user,args |awk '/tobert[[:space:]]*ssh-agent/{print $1}'`
-    if [ -n "$SSH_AGENT_PID" ] ; then
-        kill $SSH_AGENT_PID
-        unset SSH_AGENT_PID
+    ssh-add -l >/dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "~/.ssh-agent appears to be stale, deleting it"
+        rm -f ~/.ssh-agent
+        unset SSH_AUTH_SOCK
     fi
-    # start a new agent
-    ssh-agent 2>/dev/null |grep -v '^echo' > $HOME/.ssh-agent
-    # read the config into this shell
-    . $HOME/.ssh-agent
 fi
-unset RETVAL
 
 # PATH was set statically above so trust it and search for nvim/vim/vi
 nvim=$(which nvim)
