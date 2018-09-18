@@ -1,0 +1,35 @@
+attrcolor b ".I"
+vbell off
+defscrollback 8192
+autodetach on
+defbce "on"
+
+termcapinfo xterm-256color|xterm-color|xterm|xterms|xs|rxvt ti@:te@
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+# Make the output buffer large for (fast) xterms.
+termcapinfo xterm* OL=10000
+# uses background color for delete operations
+termcapinfo xterm* be
+# Do not use xterm's alternative window buffer, it breaks scrollback (see bug #61197)
+termcapinfo xterm|xterms|xterm-color|xterm-256color ti@:te=\E[2J
+
+msgwait 0
+bind j focus down
+bind k focus up
+
+caption always '%{gk}[%{--} %= %{g}%n %{y}%t %?- (%h)%? %= %{-}%{gk}][ %D %Y-%m-%d %c PDT ]'
+
+screen -t "workstation" 000
+stuff ". ~/.bash_profile\015"
+screen -t "workstation" 001
+stuff ". ~/.bash_profile\015"
+screen -t "workstation" 002
+stuff ". ~/.bash_profile\015"
+screen -t "workstation" 003
+stuff ". ~/.bash_profile\015"
+screen -t "workstation" 004
+stuff ". ~/.bash_profile\015"
+
+# used by some of my scripts ages ago and I might use them again... someday
+## BEGIN GENERATED CONFIG ##
+## END GENERATED CONFIG ##
