@@ -27,6 +27,12 @@ if [ -n "$HOME" -a -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
 
+if [ -d "$HOME/go" ] ; then
+    export GOPATH="$HOME/go"
+else
+    export GOPATH="$HOME"
+fi
+
 if [ -d "$GOPATH/bin" ] ; then
     PATH="$PATH:$GOPATH/bin"
 fi
