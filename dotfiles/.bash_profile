@@ -63,8 +63,8 @@ if [ $? -eq 0 ] ; then
 elif [ -e "$HOME/.ssh-agent" ] ; then
     # no agent currently available, try loading ~/.ssh-agent
     . $HOME/.ssh-agent
-    ssh-add -l >/dev/null 2>&1
-    if [ $? -ne 0 ] ; then
+    ids=$(ssh-add -l 2>/dev/null)
+    if [ $? -ne 0 -a "$ids" != "The agent has no identities." ] ; then
         echo "~/.ssh-agent appears to be stale, deleting it"
         rm -f ~/.ssh-agent
         unset SSH_AUTH_SOCK
