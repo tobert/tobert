@@ -29,6 +29,7 @@ class NamedSSH
   attr_reader :dsh_list
   attr_reader :nssh_last_file
   attr_reader :ssh_args
+  attr_accessor :env
   attr_accessor :hostname
   attr_accessor :comment
 
@@ -51,6 +52,11 @@ class NamedSSH
       STDERR.puts("Invalid hostname '#@hostname'.")
     end
 
+    # build up a custom environment to be passed to the child process
+    @env = {
+      'LANG'    => ENV['LANG'],
+      'TERM'    => ENV['TERM'],
+    }
     # make sure the SSH_AUTH_SOCK envvar is up-to-date (e.g. old screen session)
     load_ssh_agent
   end
@@ -193,7 +199,7 @@ class NamedSSH
       if line =~ /\w+=.+/
         key, val = line.split("=", 2)
         if key and val
-          ENV[key] = val
+          @env[key.strip] = val.strip
         end
       end
     end
@@ -239,7 +245,7 @@ if ENV['TERMCAP'] =~ /screen/
 end
 
 # I didn't see a more elegant way to do this ...
-def exec_no_sh(*args)
+def exec_no_sh(env, *args)
   arglist = Array.new
   args.each do |arg|
     if arg.class == Array.new.class
@@ -251,11 +257,11 @@ def exec_no_sh(*args)
     end
   end
 
-  Kernel.exec *arglist
+  Kernel.exec env, *arglist
 end
 
 # run SSH
-exec_no_sh "ssh", nssh.ssh_args, nssh.hostname
+exec_no_sh nssh.env, "ssh", nssh.ssh_args, nssh.hostname
 
 # vim: et ts=2 sw=2 ai smarttab
 #
