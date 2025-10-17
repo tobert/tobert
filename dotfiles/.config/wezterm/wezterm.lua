@@ -8,20 +8,19 @@ local config = wezterm.config_builder()
 -- Font Configuration
 -- ===========================
 config.font = wezterm.font_with_fallback({
-  { family = 'Cascadia Code NF', weight = 'Light' },
+  { family = 'Cascadia Code NF', weight = 200 },  -- ExtraLight
   'Consolas',
   'Noto Color Emoji',
   'Symbols Nerd Font Mono',
 })
-config.font_size = 11
+config.font_size = 14
 
 -- Customize bold to use Regular weight instead of Bold (less heavy)
--- Particularly useful on Windows
 config.font_rules = {
   {
     intensity = 'Bold',
     font = wezterm.font_with_fallback({
-      { family = 'Cascadia Code NF', weight = 'Regular' },
+      { family = 'Cascadia Code NF', weight = 400 },  -- Regular (for bold text)
       'Noto Color Emoji',
       'Symbols Nerd Font Mono',
     }),
@@ -31,9 +30,9 @@ config.font_rules = {
 -- Enable font features (ligatures, contextual alternates)
 config.harfbuzz_features = { 'calt=1', 'clig=1', 'liga=1' }
 
--- Font rendering (auto-detects platform optimization)
-config.freetype_load_target = 'Normal'
-config.freetype_render_target = 'Normal'
+-- Font rendering - HorizontalLcd hinting with light rendering
+config.freetype_load_target = 'HorizontalLcd'
+config.freetype_render_target = 'Light'
 
 -- Allow Nerd Font icons to extend slightly for better appearance
 config.allow_square_glyphs_to_overflow_width = 'WhenFollowedBySpace'
@@ -44,6 +43,13 @@ config.allow_square_glyphs_to_overflow_width = 'WhenFollowedBySpace'
 -- Matrix-inspired theme with green tints and deep blacks
 -- Theme file allows easy syncing to Windows and other machines
 config.colors = require('themes.tokyomatrix')
+
+-- Text enhancement for Matrix vibes (disabled while tuning font rendering)
+-- config.foreground_text_hsb = {
+--   hue = 1.0,
+--   saturation = 1.15,
+--   brightness = 1.2,
+-- }
 
 -- ===========================
 -- Host-Specific Configuration
