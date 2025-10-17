@@ -1,6 +1,6 @@
 -- WezTerm Configuration
 -- Cross-platform setup for WSL, Linux, and SSH (Windows/Linux compatible)
--- Uses Tokyo Matrix theme with modular host configs
+-- Uses Amy's Theme with modular host configs
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
@@ -38,18 +38,11 @@ config.freetype_render_target = 'Light'
 config.allow_square_glyphs_to_overflow_width = 'WhenFollowedBySpace'
 
 -- ===========================
--- Color Scheme (Tokyo Matrix)
+-- Color Scheme (Amy's Theme)
 -- ===========================
--- Matrix-inspired theme with green tints and deep blacks
+-- Clean, bright color scheme optimized for eye comfort and readability
 -- Theme file allows easy syncing to Windows and other machines
-config.colors = require('themes.tokyomatrix')
-
--- Text enhancement for Matrix vibes (disabled while tuning font rendering)
--- config.foreground_text_hsb = {
---   hue = 1.0,
---   saturation = 1.15,
---   brightness = 1.2,
--- }
+config.colors = require('themes.amystheme')
 
 -- ===========================
 -- Host-Specific Configuration
@@ -279,7 +272,7 @@ config.mouse_bindings = {
 -- ===========================
 -- Tab Bar Customization
 -- ===========================
--- Tab Bar Customization based on tokyo-matrix.md guide
+-- Tab Bar Customization for Amy's Theme
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
   local colors = config.colors
 
@@ -290,7 +283,7 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   local right_sep_fg = bg_color
 
   if tab.is_active then
-    bg_color = colors.ansi[3] -- Matrix Green (#73ff73)
+    bg_color = colors.ansi[5] -- Blue accent for active tab
     fg_color = colors.background
     right_sep_fg = bg_color
   elseif hover then
@@ -346,11 +339,11 @@ wezterm.on('update-status', function(window, pane)
   local SOLID_RIGHT_ARROW = utf8.char(0xe0b0)
 
   local drag_handle = wezterm.format {
-    { Background = { Color = '#0d0f15' } },
-    { Foreground = { Color = '#13151f' } },
+    { Background = { Color = '#1a1b26' } },
+    { Foreground = { Color = '#24283b' } },
     { Text = SOLID_RIGHT_ARROW },
-    { Background = { Color = '#13151f' } },
-    { Foreground = { Color = '#73ff73' } },
+    { Background = { Color = '#24283b' } },
+    { Foreground = { Color = '#7aa2f7' } },
     { Text = ' ☰ ' },
   }
 

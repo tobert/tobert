@@ -1,6 +1,6 @@
 # WezTerm Configuration
 
-**Theme:** Tokyo Matrix (dark with green tints)
+**Theme:** Amy's Theme (bright, clean colors)
 **Structure:** Modular with separate theme and host configs
 **Compatible:** Windows, Linux, WSL
 
@@ -10,7 +10,7 @@
 .config/wezterm/
 ├── wezterm.lua           # Main config file
 ├── themes/
-│   └── tokyomatrix.lua   # Tokyo Matrix color theme
+│   └── amystheme.lua     # Amy's Theme color scheme
 └── hosts/
     ├── local.lua         # Local environment (WSL, native shell, etc.)
     └── zorak.lua         # SSH to zorak server
@@ -18,7 +18,7 @@
 
 ## Features
 
-- **Tokyo Matrix theme** - Matrix-inspired colors with green tints
+- **Amy's Theme** - Bright, clean colors optimized for readability
 - **Modular design** - Theme and hosts in separate files
 - **Cross-platform** - Works on Windows and Linux
 - **Tmux-style keybindings** - Ctrl-a prefix like tmux
@@ -93,7 +93,7 @@ Edit `hosts/local.lua` to set:
 
 ### Changing Theme
 
-The Tokyo Matrix theme is in `themes/tokyomatrix.lua`. To use a different theme:
+Amy's Theme is in `themes/amystheme.lua`. To use a different theme:
 
 1. Create a new theme file in `themes/`
 2. Update `wezterm.lua`:
@@ -129,7 +129,7 @@ The Tokyo Matrix theme is in `themes/tokyomatrix.lua`. To use a different theme:
 
 ## Theme Details
 
-See `~/src/tobert/botdocs/tokyo-matrix.md` for complete theme documentation including:
+See `~/src/tobert/botdocs/amys-theme.md` for complete theme documentation including:
 - Full color palette
 - Implementation across all tools (Neovim, Bash, etc.)
 - Color adjustment instructions
@@ -139,7 +139,7 @@ See `~/src/tobert/botdocs/tokyo-matrix.md` for complete theme documentation incl
 
 The modular structure makes syncing easy:
 
-1. **Theme file** (`themes/tokyomatrix.lua`) - Identical across all machines
+1. **Theme file** (`themes/amystheme.lua`) - Identical across all machines
 2. **Main config** (`wezterm.lua`) - Identical across all machines
 3. **Host files** (`hosts/*.lua`) - Machine-specific or shared
 
@@ -152,7 +152,7 @@ rsync -av ~/.config/wezterm/ /mnt/c/Users/YourUsername/.config/wezterm/
 ## Troubleshooting
 
 **Colors don't look right:**
-- Verify `themes/tokyomatrix.lua` exists
+- Verify `themes/amystheme.lua` exists
 - Check for Lua syntax errors: `wezterm --config-file wezterm.lua`
 
 **SSH doesn't work:**

@@ -17,7 +17,7 @@ This is a personal dotfiles repository containing shell configurations and termi
 
 ## Notes
 
-- Theme for terminal things is "Tokyo Matrix" as documented in `botdocs/tokyo-matrix.md`
+- Theme for terminal things is "Amy's Theme" as documented in `botdocs/amys-theme.md`
 - The configurations are designed to be portable across Arch Linux, Ubuntu, and WSL variants.
 - WSL2 paths are included but won't cause errors on non-WSL systems
 - SSH agent setup is sophisticated and handles both local and forwarded agents correctly
