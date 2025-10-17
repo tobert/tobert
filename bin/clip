@@ -1,0 +1,89 @@
+#!/bin/bash
+# clip - Universal clipboard utility using OSC 52, Windows clip.exe, or Linux clipboard
+#
+# Usage:
+#   echo "text" | clip          # Copy to system clipboard
+#   clip < file.txt             # Copy file contents
+#
+# Detects environment and uses appropriate clipboard method:
+# - OSC 52 (works over SSH in modern terminals like WezTerm) - UTF-8
+# - Windows clip.exe (WSL/native Windows) - converts to UTF-16LE for emoji support
+# - Linux clipboard tools (wl-copy for Wayland, xclip for X11) - UTF-8
+
+set -euo pipefail
+
+# Read stdin into variable (UTF-8)
+content=$(cat)
+
+# Function to copy via OSC 52 escape sequence (UTF-8 → base64)
+# Works in WezTerm, iTerm2, and other modern terminals
+copy_osc52() {
+    local encoded
+    encoded=$(printf "%s" "$content" | base64 -w 0 2>/dev/null || printf "%s" "$content" | base64)
+    printf "\033]52;c;%s\007" "$encoded" >&2
+}
+
+# Function to copy via Windows clip.exe (UTF-8 → UTF-16LE)
+copy_windows() {
+    if command -v iconv >/dev/null 2>&1; then
+        # Convert UTF-8 to UTF-16LE for better emoji/unicode support
+        printf "%s" "$content" | iconv -f UTF-8 -t UTF-16LE | clip.exe
+    else
+        # Fallback: send UTF-8 directly (may have issues with some characters)
+        printf "%s" "$content" | clip.exe
+    fi
+}
+
+# Function to copy via Wayland (wl-copy) - UTF-8
+copy_wayland() {
+    printf "%s" "$content" | wl-copy
+}
+
+# Function to copy via X11 (xclip) - UTF-8
+copy_x11() {
+    printf "%s" "$content" | xclip -selection clipboard
+}
+
+# Detect environment and copy
+main() {
+    local ssh_session=false
+
+    # Check if we're in an SSH session
+    if [ -n "${SSH_CONNECTION:-}${SSH_CLIENT:-}${SSH_TTY:-}" ]; then
+        ssh_session=true
+    fi
+
+    # If SSH'd, prefer OSC 52 (reaches client terminal clipboard)
+    if [ "$ssh_session" = true ]; then
+        copy_osc52
+        return 0
+    fi
+
+    # Local session - use system clipboard + OSC 52 for redundancy
+
+    # Check if we're in WSL or have Windows clip.exe available
+    if command -v clip.exe >/dev/null 2>&1; then
+        copy_windows
+        copy_osc52  # Also send OSC 52 for terminal
+        return 0
+    fi
+
+    # Check for Wayland
+    if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null 2>&1; then
+        copy_wayland
+        copy_osc52  # Also send OSC 52 for terminal
+        return 0
+    fi
+
+    # Check for X11
+    if [ -n "${DISPLAY:-}" ] && command -v xclip >/dev/null 2>&1; then
+        copy_x11
+        copy_osc52  # Also send OSC 52 for terminal
+        return 0
+    fi
+
+    # Fall back to OSC 52 only (most portable option)
+    copy_osc52
+}
+
+main

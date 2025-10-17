@@ -4,10 +4,10 @@
 local opt = vim.opt
 
 -- UI
-opt.number = true                 -- Show line numbers
+opt.number = false                -- No line numbers
 opt.relativenumber = false        -- Absolute numbers (easier for core vi users)
 opt.cursorline = true            -- Highlight current line
-opt.signcolumn = "yes"           -- Always show sign column (LSP diagnostics)
+opt.signcolumn = "auto"          -- Show sign column only when diagnostics present
 opt.termguicolors = true         -- True color support
 opt.cmdheight = 0                -- Hide command line when not in use
 
