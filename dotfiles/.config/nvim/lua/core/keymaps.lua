@@ -35,6 +35,6 @@ keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 
 -- Formatting
-keymap("n", "<leader>f", function()
+keymap("n", "<leader>fm", function()
   vim.lsp.buf.format({ async = false })
 end, { desc = "Format file" })

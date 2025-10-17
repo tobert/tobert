@@ -3,8 +3,9 @@
 
 return {
   -- Colorscheme (Tokyo Matrix - custom theme)
-  -- No plugin needed - using colors/tokyomatrix.lua
+  -- This is a local plugin, so we specify the directory
   {
+    dir = vim.fn.stdpath("config"), -- Point to the nvim config dir
     lazy = false,
     priority = 1000,
     config = function()
