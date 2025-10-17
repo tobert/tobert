@@ -264,70 +264,68 @@ config.mouse_bindings = {
 -- ===========================
 -- Tab Bar Customization
 -- ===========================
--- Fancy tab bar formatting with icons and info (Tokyo Matrix colors)
+-- Tab Bar Customization based on tokyo-matrix.md guide
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
-  local background = '#13151f'
-  local foreground = '#5a7a5a'
-  local edge_background = '#0d0f15'
+  local colors = config.colors
+  local has_unseen_output = tab.has_unseen_output
+
+  -- Determine colors based on state
+  local bg_color = colors.tab_bar.inactive_tab.bg_color
+  local fg_color = colors.tab_bar.inactive_tab.fg_color
+  local left_sep_bg = colors.background
+  local right_sep_fg = bg_color
 
   if tab.is_active then
-    background = '#73ff73'
-    foreground = '#0d0f15'
+    bg_color = colors.ansi[3] -- Matrix Green (#73ff73)
+    fg_color = colors.background
+    right_sep_fg = bg_color
   elseif hover then
-    background = '#1a3d2d'
-    foreground = '#d0f8d0'
+    bg_color = colors.tab_bar.inactive_tab_hover.bg_color
+    fg_color = colors.tab_bar.inactive_tab_hover.fg_color
+    right_sep_fg = bg_color
   end
 
-  local edge_foreground = background
-
-  -- Tab number
-  local tab_index = tab.tab_index + 1
-
-  -- Get process name
-  local process = tab.active_pane.foreground_process_name
-  local process_name = process and process:match("([^/\\]+)$") or 'shell'
-
-  -- Get current directory (basename)
-  local cwd = tab.active_pane.current_working_dir
+  -- Get pane info for the title
+  local pane = tab.active_pane
+  local process_name = pane.foreground_process_name and pane.foreground_process_name:match("([^/\\]+)$") or 'shell'
+  local domain_name = pane.domain_name
+  local has_ssh_domain = domain_name and domain_name ~= 'local' and domain_name ~= ''
   local cwd_name = ''
-  if cwd then
-    local cwd_str = tostring(cwd)
-    cwd_str = cwd_str:gsub('file://[^/]*', '')
-    cwd_name = cwd_str:match("([^/\\]+)/?$") or cwd_str
+  if pane.current_working_dir then
+    local cwd_str = tostring(pane.current_working_dir):gsub('file://[^/]*', '')
+    cwd_name = cwd_str:match("([^/\\]+)[/\\]?$") or cwd_str
   end
 
-  -- Icon based on process (Nerd Font icons)
-  local icon = ''
-  if process_name:match('vim') or process_name:match('nvim') then
-    icon = ''
-  elseif process_name:match('ssh') then
-    icon = ''
-  elseif process_name:match('git') then
-    icon = ''
-  elseif process_name:match('node') or process_name:match('npm') then
-    icon = ''
-  elseif process_name:match('python') then
-    icon = ''
-  elseif process_name:match('cargo') or process_name:match('rust') then
-    icon = ''
-  elseif process_name:match('docker') then
-    icon = ''
-  elseif process_name:match('bash') or process_name:match('zsh') then
-    icon = ''
+  -- Build title string
+  local title_parts = {}
+  if has_ssh_domain then
+    table.insert(title_parts, '[' .. domain_name .. ']')
+  end
+  table.insert(title_parts, process_name)
+  if cwd_name ~= '' and cwd_name ~= process_name then
+    table.insert(title_parts, '(' .. cwd_name .. ')')
+  end
+  local title = ' ' .. tab.tab_index + 1 .. ': ' .. table.concat(title_parts, ' ') .. ' '
+
+  -- Add an indicator for tabs with unseen output
+  if has_unseen_output then
+    title = title .. '● '
   end
 
-  local title = string.format(' %s %d: %s ', icon, tab_index, cwd_name)
+  -- Powerline-style separators
+  local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
+  local SOLID_RIGHT_ARROW = utf8.char(0xe0b0)
 
   return {
-    { Background = { Color = edge_background } },
-    { Foreground = { Color = edge_foreground } },
-    { Text = '' },
-    { Background = { Color = background } },
-    { Foreground = { Color = foreground } },
+    { Background = { Color = left_sep_bg } },
+    { Foreground = { Color = bg_color } },
+    { Text = SOLID_LEFT_ARROW },
+    { Background = { Color = bg_color } },
+    { Foreground = { Color = fg_color } },
     { Text = title },
-    { Background = { Color = edge_background } },
-    { Foreground = { Color = edge_foreground } },
-    { Text = '' },
+    { Background = { Color = left_sep_bg } },
+    { Foreground = { Color = right_sep_fg } },
+    { Text = SOLID_RIGHT_ARROW },
   }
 end)
 
