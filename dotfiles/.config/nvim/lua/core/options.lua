@@ -1,0 +1,44 @@
+-- Vim Options
+-- Core vim settings for a modern editing experience
+
+local opt = vim.opt
+
+-- UI
+opt.number = true                 -- Show line numbers
+opt.relativenumber = false        -- Absolute numbers (easier for core vi users)
+opt.cursorline = true            -- Highlight current line
+opt.signcolumn = "yes"           -- Always show sign column (LSP diagnostics)
+opt.termguicolors = true         -- True color support
+opt.cmdheight = 0                -- Hide command line when not in use
+
+-- Indentation (matching your old config)
+opt.autoindent = true
+opt.tabstop = 4
+opt.shiftwidth = 4
+opt.expandtab = false            -- Use tabs by default
+opt.smartindent = true
+
+-- Search
+opt.ignorecase = true
+opt.smartcase = true             -- Case-sensitive if uppercase used
+
+-- System
+opt.hidden = true                -- Allow hidden buffers
+opt.swapfile = false             -- No swap files
+opt.backup = false
+opt.undofile = true              -- Persistent undo
+opt.undodir = vim.fn.stdpath("data") .. "/undo"
+
+-- Behavior
+opt.mouse = ""                   -- Disable mouse (vi purist mode)
+opt.splitright = true
+opt.splitbelow = true
+opt.scrolloff = 8                -- Keep 8 lines visible when scrolling
+
+-- Whitespace visibility (like your old config)
+opt.list = true
+opt.listchars = { trail = '·', tab = '» ' }
+
+-- Performance
+opt.updatetime = 250             -- Faster completion
+opt.timeoutlen = 300
