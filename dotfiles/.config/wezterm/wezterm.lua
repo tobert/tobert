@@ -309,14 +309,6 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
     -- Otherwise, auto-generate the title
     local pane = tab.active_pane
     local process_name = pane.foreground_process_name and pane.foreground_process_name:match("([^/\\]+)$") or 'bash'
-    local domain_name = pane.domain_name
-
-    -- Only show domain prefix for SSH domains (not Unix domains like windows-mux)
-    local has_ssh_domain = domain_name
-      and domain_name ~= 'local'
-      and domain_name ~= ''
-      and domain_name ~= 'windows-mux'
-      and not domain_name:match('^WSL:')
 
     -- Clean up process name (remove .exe, wsl.exe wrapper, etc.)
     process_name = process_name:gsub('%.exe$', '')
@@ -354,11 +346,6 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
 
     -- Build title string
     local title_parts = {}
-
-    -- Add SSH domain indicator
-    if has_ssh_domain then
-      table.insert(title_parts, '[' .. domain_name .. ']')
-    end
 
     -- For editors and special tools, show tool + directory
     local editor_tools = { nvim = true, vim = true, nano = true, git = true }
