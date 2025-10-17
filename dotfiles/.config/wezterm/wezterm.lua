@@ -223,8 +223,16 @@ config.keys = {
   -- Pane zoom (Ctrl-a then z, like tmux)
   { key = 'z', mods = 'LEADER', action = act.TogglePaneZoomState },
 
-  -- Rename tab (Ctrl-a then ,)
+  -- Rename tab (Ctrl-a then , or Ctrl-a then A)
   { key = ',', mods = 'LEADER', action = act.PromptInputLine {
+    description = 'Enter new name for tab',
+    action = wezterm.action_callback(function(window, pane, line)
+      if line then
+        window:active_tab():set_title(line)
+      end
+    end),
+  }},
+  { key = 'A', mods = 'LEADER|SHIFT', action = act.PromptInputLine {
     description = 'Enter new name for tab',
     action = wezterm.action_callback(function(window, pane, line)
       if line then
@@ -292,27 +300,85 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
     right_sep_fg = bg_color
   end
 
-  -- Get pane info for the title
-  local pane = tab.active_pane
-  local process_name = pane.foreground_process_name and pane.foreground_process_name:match("([^/\\]+)$") or 'shell'
-  local domain_name = pane.domain_name
-  local has_ssh_domain = domain_name and domain_name ~= 'local' and domain_name ~= ''
-  local cwd_name = ''
-  if pane.current_working_dir then
-    local cwd_str = tostring(pane.current_working_dir):gsub('file://[^/]*', '')
-    cwd_name = cwd_str:match("([^/\\]+)[/\\]?$") or cwd_str
-  end
+  local title
 
-  -- Build title string
-  local title_parts = {}
-  if has_ssh_domain then
-    table.insert(title_parts, '[' .. domain_name .. ']')
+  -- If user has manually set a title, use that
+  if tab.tab_title and #tab.tab_title > 0 then
+    title = ' ' .. tab.tab_index + 1 .. ': ' .. tab.tab_title .. ' '
+  else
+    -- Otherwise, auto-generate the title
+    local pane = tab.active_pane
+    local process_name = pane.foreground_process_name and pane.foreground_process_name:match("([^/\\]+)$") or 'bash'
+    local domain_name = pane.domain_name
+
+    -- Only show domain prefix for SSH domains (not Unix domains like windows-mux)
+    local has_ssh_domain = domain_name
+      and domain_name ~= 'local'
+      and domain_name ~= ''
+      and domain_name ~= 'windows-mux'
+      and not domain_name:match('^WSL:')
+
+    -- Clean up process name (remove .exe, wsl.exe wrapper, etc.)
+    process_name = process_name:gsub('%.exe$', '')
+
+    -- Map common process names to cleaner display names
+    local process_display_map = {
+      ['wsl'] = 'bash',
+      ['pwsh'] = 'ps',
+      ['powershell'] = 'ps',
+      ['nvim'] = 'nvim',
+      ['vim'] = 'vim',
+      ['nano'] = 'nano',
+      ['ssh'] = 'ssh',
+      ['git'] = 'git',
+      ['python3'] = 'py',
+      ['python'] = 'py',
+      ['node'] = 'node',
+      ['cargo'] = 'cargo',
+    }
+    process_name = process_display_map[process_name] or process_name
+
+    -- Get current working directory
+    local cwd_name = ''
+    if pane.current_working_dir then
+      local cwd_str = tostring(pane.current_working_dir)
+      -- Remove file:// prefix and hostname
+      cwd_str = cwd_str:gsub('file://[^/]*', '')
+      -- Get just the last directory name
+      cwd_name = cwd_str:match("([^/\\]+)[/\\]?$") or ''
+      -- If in home directory, show ~
+      if cwd_str == os.getenv('HOME') or cwd_str:match('^/home/[^/]+$') then
+        cwd_name = '~'
+      end
+    end
+
+    -- Build title string
+    local title_parts = {}
+
+    -- Add SSH domain indicator
+    if has_ssh_domain then
+      table.insert(title_parts, '[' .. domain_name .. ']')
+    end
+
+    -- For editors and special tools, show tool + directory
+    local editor_tools = { nvim = true, vim = true, nano = true, git = true }
+    if editor_tools[process_name] then
+      if cwd_name ~= '' and cwd_name ~= '~' then
+        table.insert(title_parts, process_name .. ':' .. cwd_name)
+      else
+        table.insert(title_parts, process_name)
+      end
+    else
+      -- For shells and other processes, just show directory or process
+      if cwd_name ~= '' and cwd_name ~= process_name then
+        table.insert(title_parts, cwd_name)
+      else
+        table.insert(title_parts, process_name)
+      end
+    end
+
+    title = ' ' .. tab.tab_index + 1 .. ': ' .. table.concat(title_parts, ' ') .. ' '
   end
-  table.insert(title_parts, process_name)
-  if cwd_name ~= '' and cwd_name ~= process_name then
-    table.insert(title_parts, '(' .. cwd_name .. ')')
-  end
-  local title = ' ' .. tab.tab_index + 1 .. ': ' .. table.concat(title_parts, ' ') .. ' '
 
   -- Powerline-style separators
   local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
