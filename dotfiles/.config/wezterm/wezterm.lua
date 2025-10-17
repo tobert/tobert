@@ -9,6 +9,9 @@ local config = wezterm.config_builder()
 -- ===========================
 config.font = wezterm.font_with_fallback({
   { family = 'Cascadia Code NF', weight = 'Light' },
+  { family = 'JetBrains Mono Nerd Font', weight = 'Light' },
+  { family = 'FiraCode Nerd Font', weight = 'Light' },
+  'Consolas',
   'Noto Color Emoji',
   'Symbols Nerd Font Mono',
 })
@@ -21,6 +24,9 @@ config.font_rules = {
     intensity = 'Bold',
     font = wezterm.font_with_fallback({
       { family = 'Cascadia Code NF', weight = 'Regular' },
+      { family = 'JetBrains Mono Nerd Font', weight = 'Regular' },
+      { family = 'FiraCode Nerd Font', weight = 'Regular' },
+      'Consolas',
       'Noto Color Emoji',
       'Symbols Nerd Font Mono',
     }),
