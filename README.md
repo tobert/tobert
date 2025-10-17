@@ -6,10 +6,6 @@ My code is Apache 2. Take what you like, pay it forward :)
 
 # Directories
 
-## cmd
-
-This is where the code for any commands I write in Go live.
-
 ## bin
 
 Everything in this directory gets pushed out to my `~/bin` which is in my `$PATH`.
