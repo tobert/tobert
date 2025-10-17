@@ -8,14 +8,14 @@ local config = wezterm.config_builder()
 -- Font Configuration
 -- ===========================
 config.font = wezterm.font_with_fallback({
-  { family = 'Cascadia Code NF', weight = 'Light' },
-  { family = 'JetBrains Mono Nerd Font', weight = 'Light' },
-  { family = 'FiraCode Nerd Font', weight = 'Light' },
+  { family = 'Cascadia Code NF', weight = 300 },
+  { family = 'CaskaydiaCove Nerd Font', weight = 300 },
+  { family = 'JetBrains Mono Nerd Font', weight = 300 },
+  { family = 'FiraCode Nerd Font', weight = 300 },
   'Consolas',
   'Noto Color Emoji',
-  'Symbols Nerd Font Mono',
 })
-config.font_size = 11
+config.font_size = 12
 
 -- Customize bold to use Regular weight instead of Bold (less heavy)
 -- Particularly useful on Windows
@@ -23,18 +23,18 @@ config.font_rules = {
   {
     intensity = 'Bold',
     font = wezterm.font_with_fallback({
-      { family = 'Cascadia Code NF', weight = 'Regular' },
-      { family = 'JetBrains Mono Nerd Font', weight = 'Regular' },
-      { family = 'FiraCode Nerd Font', weight = 'Regular' },
+      { family = 'Cascadia Code NF', weight = 400 },
+      { family = 'CaskaydiaCove Nerd Font', weight = 400 },
+      { family = 'JetBrains Mono Nerd Font', weight = 400 },
+      { family = 'FiraCode Nerd Font', weight = 400 },
       'Consolas',
       'Noto Color Emoji',
-      'Symbols Nerd Font Mono',
     }),
   },
 }
 
--- Enable font features (ligatures, contextual alternates)
-config.harfbuzz_features = { 'calt=1', 'clig=1', 'liga=1' }
+-- Enable font features (ligatures, contextual alternates, cursive italics)
+config.harfbuzz_features = { 'calt=1', 'clig=1', 'liga=1', 'ss01=1' }
 
 -- Font rendering (auto-detects platform optimization)
 config.freetype_load_target = 'Normal'
