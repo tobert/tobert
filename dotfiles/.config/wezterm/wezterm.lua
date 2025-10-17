@@ -9,6 +9,7 @@ local config = wezterm.config_builder()
 -- ===========================
 config.font = wezterm.font_with_fallback({
   { family = 'Cascadia Code NF', weight = 'Light' },
+  'Consolas',
   'Noto Color Emoji',
   'Symbols Nerd Font Mono',
 })
@@ -71,9 +72,17 @@ if local_config then
   config.default_prog = local_config.default_prog
 end
 
--- Initialize SSH domains and launch menu
+-- Initialize SSH domains, Unix domains, and launch menu
 config.ssh_domains = {}
+config.unix_domains = {}
 config.launch_menu = {}
+
+-- Add local Unix domains (for persistent multiplexer)
+if local_config and local_config.unix_domains then
+  for _, domain in ipairs(local_config.unix_domains) do
+    table.insert(config.unix_domains, domain)
+  end
+end
 
 -- Add local launch menu items
 if local_config and local_config.launch_menu then
@@ -267,7 +276,6 @@ config.mouse_bindings = {
 -- Tab Bar Customization based on tokyo-matrix.md guide
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
   local colors = config.colors
-  local has_unseen_output = tab.has_unseen_output
 
   -- Determine colors based on state
   local bg_color = colors.tab_bar.inactive_tab.bg_color
@@ -306,11 +314,6 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
     table.insert(title_parts, '(' .. cwd_name .. ')')
   end
   local title = ' ' .. tab.tab_index + 1 .. ': ' .. table.concat(title_parts, ' ') .. ' '
-
-  -- Add an indicator for tabs with unseen output
-  if has_unseen_output then
-    title = title .. '● '
-  end
 
   -- Powerline-style separators
   local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
