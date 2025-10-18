@@ -1,0 +1,55 @@
+#!/bin/bash
+# paste - Universal clipboard paste utility
+#
+# Usage:
+#   paste > file.txt            # Paste from system clipboard into a file
+#
+# Detects environment and uses appropriate clipboard method:
+# - Windows (via WSL)
+# - Wayland (wl-paste)
+# - X11 (xclip)
+
+set -euo pipefail
+
+# Function to paste from Windows clipboard (UTF-16LE -> UTF-8)
+paste_windows() {
+    # Get-Clipboard returns UTF-16LE, convert to UTF-8 and remove Windows line endings
+    powershell.exe -Command Get-Clipboard | tr -d '\r'
+}
+
+# Function to paste from Wayland (wl-paste)
+paste_wayland() {
+    wl-paste --no-newline
+}
+
+# Function to paste from X11 (xclip)
+paste_x11() {
+    xclip -selection clipboard -o
+}
+
+# Detect environment and paste
+main() {
+    # Check if we're in WSL or have Windows powershell.exe available
+    if command -v powershell.exe >/dev/null 2>&1; then
+        paste_windows
+        return 0
+    fi
+
+    # Check for Wayland
+    if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-paste >/dev/null 2>&1; then
+        paste_wayland
+        return 0
+    fi
+
+    # Check for X11
+    if [ -n "${DISPLAY:-}" ] && command -v xclip >/dev/null 2>&1;
+        then
+        paste_x11
+        return 0
+    fi
+
+    echo "No suitable clipboard utility found for paste operation." >&2
+    exit 1
+}
+
+main

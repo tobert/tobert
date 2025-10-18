@@ -29,8 +29,23 @@ opt.backup = false
 opt.undofile = true              -- Persistent undo
 opt.undodir = vim.fn.stdpath("data") .. "/undo"
 
+-- Clipboard (use custom ~/bin/clip and ~/bin/paste scripts)
+vim.g.clipboard = {
+  name = "custom-clipboard",
+  copy = {
+    ["+"] = vim.fn.expand("~/bin/clip"),
+    ["*"] = vim.fn.expand("~/bin/clip"),
+  },
+  paste = {
+    ["+"] = vim.fn.expand("~/bin/paste"),
+    ["*"] = vim.fn.expand("~/bin/paste"),
+  },
+  cache_enabled = 0,
+}
+opt.clipboard = "unnamedplus"    -- Use system clipboard
+
 -- Behavior
-opt.mouse = ""                   -- Disable mouse (vi purist mode)
+opt.mouse = "a"                  -- Enable mouse in all modes
 opt.splitright = true
 opt.splitbelow = true
 opt.scrolloff = 8                -- Keep 8 lines visible when scrolling
