@@ -184,7 +184,7 @@ config.scrollback_lines = 10000
 config.automatically_reload_config = true
 config.selection_word_boundary = " \t\n{}[]()\"':;,│"
 config.front_end = "WebGpu"
-config.max_fps = 120
+config.max_fps = 30
 config.audible_bell = "Disabled"
 
 -- Hyperlink detection
@@ -294,6 +294,9 @@ config.keys = {
 	{ key = "+", mods = "CTRL|SHIFT", action = act.IncreaseFontSize },
 	{ key = "-", mods = "CTRL", action = act.DecreaseFontSize },
 	{ key = "0", mods = "CTRL", action = act.ResetFontSize },
+
+	-- Claude Code multiline input (Shift+Enter sends ESC+Enter)
+	{ key = "Enter", mods = "SHIFT", action = act.SendString("\x1b\r") },
 }
 
 -- ===========================
