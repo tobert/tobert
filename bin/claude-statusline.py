@@ -106,6 +106,12 @@ ICON_WIDTHS = {
 # Rainbow palette (256-color codes): red, orange, yellow, green, cyan, blue, magenta, purple
 RAINBOW = [196, 208, 226, 46, 51, 69, 201, 129]
 
+# Braille wave - dots rise and fall like a sound wave
+BRAILLE_WAVE = ['⠀', '⡀', '⠄', '⠂', '⠁', '⠈', '⠐', '⠠']  # dot moves up through positions
+
+# Block gradient chars (dense to sparse)
+BLOCK_GRADIENT = ['▓', '▒', '░', ' ']
+
 # =============================================================================
 # Width Calculation (no wcwidth dependency)
 # =============================================================================
@@ -153,6 +159,49 @@ def rainbow_text(text: str, offset: int = 0) -> str:
 def strip_ansi(text: str) -> str:
     """Remove ANSI escape codes from text."""
     return re.sub(r'\033\[[0-9;]*m', '', text)
+
+
+def braille_wave_padding(length: int, time_offset: int) -> str:
+    """Generate padding with braille dots that wave like a sound visualization."""
+    if length <= 0:
+        return ""
+    result = []
+    for i in range(length):
+        # Wave travels across the padding
+        phase = (i + time_offset) % len(BRAILLE_WAVE)
+        char = BRAILLE_WAVE[phase]
+        # Cycle colors through the wave
+        color_idx = (i + time_offset) % len(RAINBOW)
+        if char != '⠀':  # not blank braille
+            result.append(f"{fg(RAINBOW[color_idx])}{char}{RESET}")
+        else:
+            result.append(' ')
+    return "".join(result)
+
+
+def gradient_padding(length: int, time_offset: int) -> str:
+    """Generate padding with colored gradient fading from center outward."""
+    if length <= 0:
+        return ""
+    if length == 1:
+        return ' '
+
+    result = [' '] * length
+    center = length // 2
+
+    # Place gradient chars based on distance from center
+    for i in range(length):
+        dist = abs(i - center)
+        # Map distance to gradient char (closer = denser)
+        if dist < len(BLOCK_GRADIENT):
+            char_idx = dist
+            char = BLOCK_GRADIENT[char_idx]
+            if char != ' ':
+                # Color based on position + time for shimmer
+                color_idx = (i + time_offset) % len(RAINBOW)
+                result[i] = f"{fg(RAINBOW[color_idx])}{char}{RESET}"
+
+    return "".join(result)
 
 
 def display_width(text: str) -> int:
@@ -357,7 +406,7 @@ def main():
     right = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {pct_color}{ctx_pct}%{RESET} {DIM}{ctx_used}/{ctx_max}{RESET}"
 
     # -------------------------------------------------------------------------
-    # Compose with whitespace padding
+    # Compose with pulsing dot padding
     # -------------------------------------------------------------------------
     left_w = display_width(left)
     center_w = display_width(center)
@@ -366,13 +415,22 @@ def main():
     total_content = left_w + center_w + right_w
     available = term_width - total_content
 
+    # Use time for wave animation (shifts every ~500ms for visible motion)
+    wave_offset = int(time.time() * 2)
+
     if available >= 2:
         if center:
             left_gap = available // 2
             right_gap = available - left_gap
-            output = f"{left}{' ' * left_gap}{center}{' ' * right_gap}{right}"
+            # Continuous braille wave - flows "through" the center content
+            # Right side continues where left would have been if wave kept going
+            left_pad = braille_wave_padding(left_gap, wave_offset)
+            # Offset right by left_gap + center width so wave continues seamlessly
+            right_pad = braille_wave_padding(right_gap, wave_offset + left_gap + center_w)
+            output = f"{left}{left_pad}{center}{right_pad}{right}"
         else:
-            output = f"{left}{' ' * available}{right}"
+            pad = braille_wave_padding(available, wave_offset)
+            output = f"{left}{pad}{right}"
     else:
         output = f"{left} {center} {right}" if center else f"{left} {right}"
 
