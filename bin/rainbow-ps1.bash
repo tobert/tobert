@@ -106,8 +106,8 @@ __ps1_build() {
         prompt_char="$(__ps1_fg 196)❯$(__ps1_reset)"
     fi
 
-    # Build prompt
-    PS1="${user_part}${host_part}${path_part}${git_part} ${sep} ${prompt_char} "
+    # Build prompt (start with reset to clear any cruft)
+    PS1="$(__ps1_reset)${user_part}${host_part}${path_part}${git_part} ${sep} ${prompt_char} "
 }
 
 PROMPT_COMMAND=__ps1_build
