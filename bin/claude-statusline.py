@@ -90,6 +90,9 @@ from pathlib import Path
 # Safety margin to avoid line wrap (increase if wrapping occurs)
 SAFETY_MARGIN = 5
 
+# Animation speed - higher = faster (4 = ~250ms per shift, 10 = ~100ms)
+WAVE_SPEED = 10
+
 # Nerdfonts icons - adjust widths based on your font's rendering
 GIT_BRANCH = '\ue0a0'  # nf-pl-branch (powerline)
 CLOCK = '󰔛'            # nf-md-clock
@@ -415,8 +418,8 @@ def main():
     total_content = left_w + center_w + right_w
     available = term_width - total_content
 
-    # Use time for wave animation (shifts every ~500ms for visible motion)
-    wave_offset = int(time.time() * 2)
+    # Wave animation offset based on time
+    wave_offset = int(time.time() * WAVE_SPEED)
 
     if available >= 2:
         if center:
