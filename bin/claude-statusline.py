@@ -335,7 +335,6 @@ def main():
     term_width = get_term_width() - SAFETY_MARGIN
 
     # Basic info
-    user = os.environ.get("USER", "user")
     host = os.uname().nodename.split(".")[0]
     cwd = data.get("workspace", {}).get("current_dir") or data.get("cwd", ".")
     model = data.get("model", {}).get("display_name") or data.get("model", {}).get("id", "unknown")
@@ -349,11 +348,11 @@ def main():
     model = model.removeprefix("Claude ")
 
     # -------------------------------------------------------------------------
-    # LEFT: PS1-style + Git
+    # LEFT: Model + Host + Path + Git
     # -------------------------------------------------------------------------
     git_info = get_git_info(cwd)
-    rainbow_user = rainbow_text(user, rainbow_offset)
-    left = f"{rainbow_user}{DIM}@{RESET}{fg(51)}{host}{RESET}{DIM}:{RESET}{fg(69)}{display_cwd}{RESET}{git_info}"
+    rainbow_model = rainbow_text(model, rainbow_offset)
+    left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}"
 
     # -------------------------------------------------------------------------
     # CENTER: Session duration + Lines changed
@@ -375,7 +374,7 @@ def main():
     center = sep.join(center_parts) if center_parts else ""
 
     # -------------------------------------------------------------------------
-    # RIGHT: Model + Context Usage
+    # RIGHT: Context Usage (color-coded used/max)
     # -------------------------------------------------------------------------
     ctx_pct = 0
     ctx_used = "0"
@@ -395,16 +394,18 @@ def main():
         ctx_used = fmt_tokens(current)
         ctx_max = fmt_tokens(size)
 
-    # Traffic light colors for context percentage
+    # Traffic light colors for context usage
     if ctx_pct >= 80:
-        pct_color = fg(196)  # red - danger
+        ctx_color = fg(196)  # red - danger
     elif ctx_pct >= 60:
-        pct_color = fg(226)  # yellow - caution
+        ctx_color = fg(226)  # yellow - caution
     else:
-        pct_color = fg(46)   # green - good
+        ctx_color = fg(46)   # green - good
 
-    rainbow_model = rainbow_text(model, rainbow_offset)
-    right = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {pct_color}{ctx_pct}%{RESET} {DIM}{ctx_used}/{ctx_max}{RESET}"
+    # Claude Code shows "Context low" warning around 70%+ - go compact mode
+    compact_mode = ctx_pct >= 70
+
+    right = f"{ctx_color}{ctx_used}{RESET}{DIM}/{RESET}{ctx_color}{ctx_max}{RESET}"
 
     # -------------------------------------------------------------------------
     # Compose with pulsing dot padding
@@ -419,7 +420,12 @@ def main():
     # Wave animation - moves each refresh (ms precision ensures change each call)
     wave_offset = int(time.time() * 1000)
 
-    if available >= 2:
+    if compact_mode:
+        # Minimal output when Claude Code's "Context low" warning is showing
+        # Just model/host/path/git + small wave + context usage
+        mini_wave = braille_wave_padding(16, wave_offset)
+        output = f"{left} {mini_wave} {right}"
+    elif available >= 2:
         if center:
             left_gap = available // 2
             right_gap = available - left_gap
