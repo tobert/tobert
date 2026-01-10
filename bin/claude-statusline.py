@@ -348,34 +348,27 @@ def main():
     model = model.removeprefix("Claude ")
 
     # -------------------------------------------------------------------------
-    # LEFT: Model + Host + Path + Git
+    # LEFT: Model + Host + Path + Git + Timer
     # -------------------------------------------------------------------------
     git_info = get_git_info(cwd)
     rainbow_model = rainbow_text(model, rainbow_offset)
-    left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}"
-
-    # -------------------------------------------------------------------------
-    # CENTER: Session duration + Lines changed
-    # -------------------------------------------------------------------------
-    center_parts = []
     cost = data.get("cost", {})
 
+    # Rainbow timer
     duration_ms = cost.get("total_duration_ms", 0)
+    timer_part = ""
     if duration_ms > 0:
-        center_parts.append(f"{fg(51)}{CLOCK}{RESET} {fmt_duration(duration_ms)}")
+        rainbow_duration = rainbow_text(fmt_duration(duration_ms), rainbow_offset + 3)
+        timer_part = f" {fg(51)}{CLOCK}{RESET} {rainbow_duration}"
 
+    left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}{timer_part}"
+    compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}"
+
+    # -------------------------------------------------------------------------
+    # RIGHT: Lines changed + Context Usage
+    # -------------------------------------------------------------------------
     lines_added = cost.get("total_lines_added", 0)
     lines_removed = cost.get("total_lines_removed", 0)
-    if lines_added > 0 or lines_removed > 0:
-        lines_str = f"{fg(46)}+{lines_added}{RESET} {fg(196)}-{lines_removed}{RESET}"
-        center_parts.append(lines_str)
-
-    sep = f" {fg(208)}│{RESET} "
-    center = sep.join(center_parts) if center_parts else ""
-
-    # -------------------------------------------------------------------------
-    # RIGHT: Context Usage (color-coded used/max)
-    # -------------------------------------------------------------------------
     ctx_pct = 0
     ctx_used = "0"
     ctx_max = "200K"
@@ -405,41 +398,36 @@ def main():
     # Claude Code shows "Context low" warning around 70%+ - go compact mode
     compact_mode = ctx_pct >= 70
 
-    right = f"{ctx_color}{ctx_used}{RESET}{DIM}/{RESET}{ctx_color}{ctx_max}{RESET}"
+    # Build right: lines (green/red) │ context (used/max)
+    lines_part = ""
+    if lines_added > 0 or lines_removed > 0:
+        lines_part = f"{fg(46)}{lines_added}{RESET}{DIM}/{RESET}{fg(196)}{lines_removed}{RESET} {fg(208)}│{RESET} "
+
+    ctx_part = f"{ctx_color}{ctx_used}{RESET}{DIM}/{RESET}{ctx_color}{ctx_max}{RESET}"
+    right = f"{lines_part}{ctx_part}"
+    compact_right = ctx_part  # No diff stats in compact mode
 
     # -------------------------------------------------------------------------
-    # Compose with pulsing dot padding
+    # Compose: LEFT + braille wave + RIGHT
     # -------------------------------------------------------------------------
     left_w = display_width(left)
-    center_w = display_width(center)
     right_w = display_width(right)
 
-    total_content = left_w + center_w + right_w
-    available = term_width - total_content
+    available = term_width - left_w - right_w
 
     # Wave animation - moves each refresh (ms precision ensures change each call)
     wave_offset = int(time.time() * 1000)
 
     if compact_mode:
-        # Minimal output when Claude Code's "Context low" warning is showing
-        # Just model/host/path/git + small wave + context usage
+        # Minimal: no timer, no diff stats, short wave
         mini_wave = braille_wave_padding(16, wave_offset)
-        output = f"{left} {mini_wave} {right}"
+        output = f"{compact_left} {mini_wave} {compact_right}"
     elif available >= 2:
-        if center:
-            left_gap = available // 2
-            right_gap = available - left_gap
-            # Continuous braille wave - flows "through" the center content
-            # Right side continues where left would have been if wave kept going
-            left_pad = braille_wave_padding(left_gap, wave_offset)
-            # Offset right by left_gap + center width so wave continues seamlessly
-            right_pad = braille_wave_padding(right_gap, wave_offset + left_gap + center_w)
-            output = f"{left}{left_pad}{center}{right_pad}{right}"
-        else:
-            pad = braille_wave_padding(available, wave_offset)
-            output = f"{left}{pad}{right}"
+        # Full braille wave between left and right
+        pad = braille_wave_padding(available, wave_offset)
+        output = f"{left}{pad}{right}"
     else:
-        output = f"{left} {center} {right}" if center else f"{left} {right}"
+        output = f"{left} {right}"
 
     print(output)
 
