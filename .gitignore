@@ -13,3 +13,7 @@
 
 # Host-specific configs
 dotfiles/.config/wezterm/hosts/zorak.lua
+
+# Python
+__pycache__/
+*.pyc
