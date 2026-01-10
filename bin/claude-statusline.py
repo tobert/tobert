@@ -396,7 +396,7 @@ def main():
         ctx_color = fg(46)   # green - good
 
     # Claude Code shows "Context low" warning around 70%+ - go compact mode
-    compact_mode = ctx_pct >= 70
+    compact_mode = ctx_pct >= 74  # Claude's "Context low" warning appears ~147K/200K
 
     # Build right: lines (green/red) │ context (used/max)
     lines_part = ""
