@@ -223,6 +223,66 @@ def fmt_tokens(n: int) -> str:
     return str(n)
 
 
+def compress_path(path: str, max_len: int = 35, smart: bool = False) -> str:
+    """Compress path to fit within max_len.
+
+    Args:
+        path: The path to compress (should already have ~ substituted for home)
+        max_len: Maximum length for the result
+        smart: If True, use breadcrumb compression (single-char middle dirs)
+               If False, simple truncation from start with ellipsis
+
+    Examples:
+        smart=False: ~/src/tobert/dotfiles/nvim/lua → …bert/dotfiles/nvim/lua
+        smart=True:  ~/src/tobert/dotfiles/nvim/lua → ~/s/t/d/nvim/lua
+    """
+    if len(path) <= max_len:
+        return path
+
+    if not smart:
+        # Simple truncation from start
+        return "…" + path[-(max_len - 1):]
+
+    # Smart compression: ~/s/t/d/nvim/lua style
+    parts = path.split('/')
+    parts = [p for p in parts if p]  # Filter empty parts
+
+    # Handle ~ prefix specially
+    if path.startswith('~'):
+        prefix = '~/'
+        if parts and parts[0] == '~':
+            parts = parts[1:]
+    elif path.startswith('/'):
+        prefix = '/'
+    else:
+        prefix = ''
+
+    if len(parts) <= 2:
+        # Not enough parts to compress meaningfully
+        result = prefix + '/'.join(parts)
+        if len(result) > max_len:
+            return "…" + result[-(max_len - 1):]
+        return result
+
+    # Keep last 2 segments full, compress earlier ones to single char
+    compressed = []
+    keep_full = 2
+
+    for i, part in enumerate(parts):
+        if i >= len(parts) - keep_full:
+            compressed.append(part)
+        else:
+            compressed.append(part[0] if part else '')
+
+    result = prefix + '/'.join(compressed)
+
+    # If still too long, fall back to truncation
+    if len(result) > max_len:
+        return "…" + result[-(max_len - 1):]
+
+    return result
+
+
 def fmt_duration(ms: int) -> str:
     """Format duration in human-readable form."""
     seconds = ms // 1000
@@ -341,9 +401,9 @@ def main():
 
     # Shorten paths
     home = str(Path.home())
-    display_cwd = cwd.replace(home, "~", 1) if cwd.startswith(home) else cwd
-    if len(display_cwd) > 35:
-        display_cwd = "…" + display_cwd[-34:]
+    raw_cwd = cwd.replace(home, "~", 1) if cwd.startswith(home) else cwd
+    display_cwd = compress_path(raw_cwd, max_len=35, smart=False)
+    compact_cwd = compress_path(raw_cwd, max_len=25, smart=True)
 
     model = model.removeprefix("Claude ")
 
@@ -362,7 +422,7 @@ def main():
         timer_part = f" {fg(51)}{CLOCK}{RESET} {rainbow_duration}"
 
     left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}{timer_part}"
-    compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}"
+    compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{compact_cwd}{RESET}{git_info}"
 
     # -------------------------------------------------------------------------
     # RIGHT: Lines changed + Context Usage
