@@ -244,9 +244,9 @@ def cpu_heatmap(values: list[int], time_offset: int) -> str:
 
     # Thermal gradient: green (idle) → blue → purple → red (hot)
     THERMAL_GRADIENT = [
-        46,   # 0-10%   green (idle)
-        48,   # 10-20%  spring green
-        51,   # 20-30%  cyan
+        22,   # 0-10%   dark green (idle)
+        28,   # 10-20%  green
+        37,   # 20-30%  teal
         39,   # 30-40%  deep sky blue
         27,   # 40-50%  blue
         57,   # 50-60%  blue-violet
