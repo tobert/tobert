@@ -78,6 +78,7 @@ import curses
 import json
 import os
 import re
+import socket
 import subprocess
 import sys
 import time
@@ -113,6 +114,12 @@ BRAILLE_WAVE = ['⠀', '⡀', '⠄', '⠂', '⠁', '⠈', '⠐', '⠠']  # dot m
 
 # Block gradient chars (dense to sparse)
 BLOCK_GRADIENT = ['▓', '▒', '░', ' ']
+
+# CPU heatmap blocks (8 levels, low to high)
+HEATMAP_BLOCKS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
+
+# Statusline daemon socket path
+DAEMON_SOCKET = Path(f"/run/user/{os.getuid()}/statusline.sock")
 
 # =============================================================================
 # Width Calculation (no wcwidth dependency)
@@ -202,6 +209,64 @@ def gradient_padding(length: int, time_offset: int) -> str:
                 # Color based on position + time for shimmer
                 color_idx = (i + time_offset) % len(RAINBOW)
                 result[i] = f"{fg(RAINBOW[color_idx])}{char}{RESET}"
+
+    return "".join(result)
+
+
+def get_daemon_stats() -> dict | None:
+    """Try to read stats from statusline daemon. Returns None if unavailable."""
+    if not DAEMON_SOCKET.exists():
+        return None
+
+    try:
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(0.05)  # 50ms timeout - must be fast
+        sock.connect(str(DAEMON_SOCKET))
+        data = sock.recv(4096)
+        sock.close()
+        return json.loads(data.decode())
+    except Exception:
+        return None
+
+
+def cpu_heatmap(values: list[int], time_offset: int) -> str:
+    """Render CPU history as a colored heatmap bar.
+
+    Args:
+        values: List of CPU percentages (0-100)
+        time_offset: For rainbow color cycling
+
+    Returns:
+        Colored string with block chars representing CPU load
+    """
+    if not values:
+        return ""
+
+    # Thermal gradient: green (idle) → blue → purple → red (hot)
+    THERMAL_GRADIENT = [
+        46,   # 0-10%   green (idle)
+        48,   # 10-20%  spring green
+        51,   # 20-30%  cyan
+        39,   # 30-40%  deep sky blue
+        27,   # 40-50%  blue
+        57,   # 50-60%  blue-violet
+        129,  # 60-70%  purple
+        163,  # 70-80%  magenta
+        197,  # 80-90%  deep pink
+        196,  # 90-100% red (hot)
+    ]
+
+    result = []
+    for i, pct in enumerate(values):
+        # Map 0-100 to block index 0-7
+        block_idx = min(7, (pct * 8) // 101)
+        char = HEATMAP_BLOCKS[block_idx]
+
+        # Map 0-100 to color gradient index 0-9
+        color_idx = min(9, pct // 10)
+        color = THERMAL_GRADIENT[color_idx]
+
+        result.append(f"{fg(color)}{char}{RESET}")
 
     return "".join(result)
 
@@ -384,8 +449,14 @@ def get_term_width() -> int:
 # =============================================================================
 
 def main():
-    # Rainbow offset shifts every ~2 seconds for subtle animation
-    rainbow_offset = int(time.time() / 2) % len(RAINBOW)
+    # Try to get stats from daemon (CPU heatmap, synced rainbow offset)
+    daemon_stats = get_daemon_stats()
+
+    # Rainbow offset - use daemon's if available for consistency, else calculate
+    if daemon_stats:
+        rainbow_offset = daemon_stats.get("rainbow_offset", 0)
+    else:
+        rainbow_offset = int(time.time() / 2) % len(RAINBOW)
 
     # Read JSON context from Claude Code
     try:
@@ -409,7 +480,7 @@ def main():
     model = model.removeprefix("Claude ")
 
     # -------------------------------------------------------------------------
-    # LEFT: Model + Host + Path + Git + Timer
+    # LEFT: Model + Host + Path + Git + Timer + CPU Heatmap
     # -------------------------------------------------------------------------
     git_info = get_git_info(cwd)
     rainbow_model = rainbow_text(model, rainbow_offset)
@@ -422,8 +493,13 @@ def main():
         rainbow_duration = rainbow_text(fmt_duration(duration_ms), rainbow_offset + 3)
         timer_part = f" {fg(51)}{CLOCK}{RESET} {rainbow_duration}"
 
-    left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}{timer_part}"
-    compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{compact_cwd}{RESET}{git_info}"
+    # CPU heatmap from daemon
+    heatmap_part = ""
+    if daemon_stats and daemon_stats.get("cpu_heatmap"):
+        heatmap_part = f" {cpu_heatmap(daemon_stats['cpu_heatmap'], 0)}"
+
+    left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{display_cwd}{RESET}{git_info}{timer_part}{heatmap_part}"
+    compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{compact_cwd}{RESET}{git_info}{heatmap_part}"
 
     # -------------------------------------------------------------------------
     # RIGHT: Lines changed + Context Usage
@@ -469,7 +545,7 @@ def main():
     compact_right = ctx_part  # No diff stats in compact mode
 
     # -------------------------------------------------------------------------
-    # Compose: LEFT + braille wave + RIGHT
+    # Compose: LEFT + wave + RIGHT
     # -------------------------------------------------------------------------
     left_w = display_width(left)
     right_w = display_width(right)
@@ -484,7 +560,6 @@ def main():
         mini_wave = braille_wave_padding(16, wave_offset)
         output = f"{compact_left} {mini_wave} {compact_right}"
     elif available >= 2:
-        # Full braille wave between left and right
         pad = braille_wave_padding(available, wave_offset)
         output = f"{left}{pad}{right}"
     else:
