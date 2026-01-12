@@ -88,7 +88,8 @@ from pathlib import Path
 # =============================================================================
 
 # Safety margin to avoid line wrap (increase if wrapping occurs)
-SAFETY_MARGIN = 5
+# Extra space accounts for Claude Code's built-in token counter (│ 28K/200K)
+SAFETY_MARGIN = 18
 
 
 # Nerdfonts icons - adjust widths based on your font's rendering
