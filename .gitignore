@@ -17,3 +17,7 @@ dotfiles/.config/wezterm/hosts/zorak.lua
 # Python
 __pycache__/
 *.pyc
+
+# Vim plugins (managed by minpac)
+dotfiles/.vim/pack/
+dotfiles/.vim/undo/
