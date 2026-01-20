@@ -45,13 +45,12 @@ Adjust these constants at the top of the script:
 LAYOUT
 ================================================================================
 
-  LEFT                              CENTER                           RIGHT
-  user@host:path  branch status    󰔛 duration │ +added -removed    󰘧 Model XX% used/max
+  LEFT                                         RIGHT
+  󰘧 Model host:path  branch status 󰔛 duration    used/max
 
-- LEFT: Rainbow username, cyan host, cornflower path, git branch with status
+- LEFT: Rainbow model, cyan host, cornflower path, git branch with status, timer
   - Git status: + (staged/green), ! (unstaged/yellow), ? (untracked/cyan)
-- CENTER: Session duration, lines added/removed
-- RIGHT: Rainbow model name, context % (traffic light colors), token usage
+- RIGHT: Context usage (traffic light colors: green < 60%, yellow < 80%, red >= 80%)
 
 The rainbow colors shift slowly (~every 2 seconds) for a subtle animation.
 
@@ -63,8 +62,8 @@ Claude Code pipes JSON to stdin with these fields (as of v2.x):
 
 Available:
 - model.{id, display_name}
-- context_window.{context_window_size, current_usage.*}
-- cost.{total_cost_usd, total_duration_ms, total_lines_added, total_lines_removed}
+- context_window.{context_window_size, current_usage.*, used_percentage, remaining_percentage}
+- cost.{total_cost_usd, total_duration_ms}
 - workspace.{current_dir, project_dir}
 - version, session_id, output_style.name
 
@@ -110,9 +109,6 @@ RAINBOW = [196, 208, 226, 46, 51, 69, 201, 129]
 
 # Braille wave - dots rise and fall like a sound wave
 BRAILLE_WAVE = ['⠀', '⡀', '⠄', '⠂', '⠁', '⠈', '⠐', '⠠']  # dot moves up through positions
-
-# Block gradient chars (dense to sparse)
-BLOCK_GRADIENT = ['▓', '▒', '░', ' ']
 
 # =============================================================================
 # Width Calculation (no wcwidth dependency)
@@ -168,41 +164,21 @@ def braille_wave_padding(length: int, time_offset: int) -> str:
     if length <= 0:
         return ""
     result = []
+    last_color = None
     for i in range(length):
-        # Wave travels across the padding
         phase = (i + time_offset) % len(BRAILLE_WAVE)
         char = BRAILLE_WAVE[phase]
-        # Cycle colors through the wave
         color_idx = (i + time_offset) % len(RAINBOW)
+        color = RAINBOW[color_idx]
         if char != '⠀':  # not blank braille
-            result.append(f"{fg(RAINBOW[color_idx])}{char}{RESET}")
+            # Only emit color code if it changed
+            if color != last_color:
+                result.append(fg(color))
+                last_color = color
+            result.append(char)
         else:
             result.append(' ')
-    return "".join(result)
-
-
-def gradient_padding(length: int, time_offset: int) -> str:
-    """Generate padding with colored gradient fading from center outward."""
-    if length <= 0:
-        return ""
-    if length == 1:
-        return ' '
-
-    result = [' '] * length
-    center = length // 2
-
-    # Place gradient chars based on distance from center
-    for i in range(length):
-        dist = abs(i - center)
-        # Map distance to gradient char (closer = denser)
-        if dist < len(BLOCK_GRADIENT):
-            char_idx = dist
-            char = BLOCK_GRADIENT[char_idx]
-            if char != ' ':
-                # Color based on position + time for shimmer
-                color_idx = (i + time_offset) % len(RAINBOW)
-                result[i] = f"{fg(RAINBOW[color_idx])}{char}{RESET}"
-
+    result.append(RESET)
     return "".join(result)
 
 
@@ -426,27 +402,24 @@ def main():
     compact_left = f"{fg(129)}{MODEL}{RESET} {rainbow_model} {fg(51)}{host}{RESET} {fg(69)}{compact_cwd}{RESET}{git_info}"
 
     # -------------------------------------------------------------------------
-    # RIGHT: Lines changed + Context Usage
+    # RIGHT: Context Usage
     # -------------------------------------------------------------------------
-    lines_added = cost.get("total_lines_added", 0)
-    lines_removed = cost.get("total_lines_removed", 0)
     ctx_pct = 0
     ctx_used = "0"
     ctx_max = "200K"
 
     ctx_window = data.get("context_window", {})
-    usage = ctx_window.get("current_usage", {})
     size = ctx_window.get("context_window_size", 200000)
+    usage = ctx_window.get("current_usage", {})
 
-    if usage and size > 0:
-        current = (
-            usage.get("input_tokens", 0) +
-            usage.get("cache_creation_input_tokens", 0) +
-            usage.get("cache_read_input_tokens", 0)
-        )
-        ctx_pct = (current * 100) // size
-        ctx_used = fmt_tokens(current)
-        ctx_max = fmt_tokens(size)
+    ctx_pct = int(ctx_window.get("used_percentage", 0))
+    current = (
+        usage.get("input_tokens", 0) +
+        usage.get("cache_creation_input_tokens", 0) +
+        usage.get("cache_read_input_tokens", 0)
+    ) if usage else 0
+    ctx_used = fmt_tokens(current)
+    ctx_max = fmt_tokens(size)
 
     # Traffic light colors for context usage
     if ctx_pct >= 80:
@@ -459,14 +432,8 @@ def main():
     # Claude Code shows "Context low" warning around 70%+ - go compact mode
     compact_mode = ctx_pct >= 74  # Claude's "Context low" warning appears ~147K/200K
 
-    # Build right: lines (green/red) │ context (used/max)
-    lines_part = ""
-    if lines_added > 0 or lines_removed > 0:
-        lines_part = f"{fg(46)}{lines_added}{RESET}{DIM}/{RESET}{fg(196)}{lines_removed}{RESET} {fg(208)}│{RESET} "
-
-    ctx_part = f"{ctx_color}{ctx_used}{RESET}{DIM}/{RESET}{ctx_color}{ctx_max}{RESET}"
-    right = f"{lines_part}{ctx_part}"
-    compact_right = ctx_part  # No diff stats in compact mode
+    # Build right: context (used/max)
+    right = f"{ctx_color}{ctx_used}{RESET}{DIM}/{RESET}{ctx_color}{ctx_max}{RESET}"
 
     # -------------------------------------------------------------------------
     # Compose: LEFT + braille wave + RIGHT
@@ -482,15 +449,16 @@ def main():
     if compact_mode:
         # Minimal: no timer, no diff stats, short wave
         mini_wave = braille_wave_padding(16, wave_offset)
-        output = f"{compact_left} {mini_wave} {compact_right}"
-    elif available >= 2:
-        # Full braille wave between left and right
-        pad = braille_wave_padding(available, wave_offset)
-        output = f"{left}{pad}{right}"
+        output = f"{compact_left} {mini_wave} {right}"
+    elif available >= 10:
+        # Full braille wave between left and right (with margin)
+        pad = braille_wave_padding(available - 8, wave_offset)
+        output = f"{left}    {pad}    {right}"
     else:
         output = f"{left} {right}"
 
-    print(output)
+    # Start and end with RESET to ensure clean state
+    print(f"{RESET}{output}{RESET}", end="")
 
 
 if __name__ == "__main__":
