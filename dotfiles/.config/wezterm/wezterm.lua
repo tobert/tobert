@@ -1,6 +1,7 @@
 -- WezTerm Configuration
 -- Cross-platform setup for WSL, Linux, and SSH (Windows/Linux compatible)
 -- Uses Amy's Theme with modular host configs
+---@diagnostic disable: unused-local
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 
@@ -38,48 +39,74 @@ config.freetype_render_target = "Light"
 config.allow_square_glyphs_to_overflow_width = "WhenFollowedBySpace"
 
 -- ===========================
--- Color Scheme (Harmonized)
+-- Color Scheme: Amy's Theme
 -- ===========================
--- Load the single source of truth for colors
-local palette = require("../nvim/lua/shared/palette")
-
--- Map the shared palette to WezTerm's color config
+-- Based on Tokyo Night with personalized tweaks
 config.colors = {
-	foreground = palette.foreground,
-	background = palette.background,
+	-- Base colors
+	foreground = "#e5e5e5",
+	background = "#1a1b26",
 
-	cursor_bg = palette.cursor_bg,
-	cursor_fg = palette.cursor_fg,
-	cursor_border = palette.cursor_bg,
+	-- Cursor
+	cursor_bg = "#e5e5e5",
+	cursor_fg = "#1a1b26",
+	cursor_border = "#e5e5e5",
 
-	selection_fg = palette.selection_fg,
-	selection_bg = palette.selection_bg,
+	-- Selection
+	selection_fg = "#e5e5e5",
+	selection_bg = "#33467c",
 
-	split = palette.border,
+	-- Pane split
+	split = "#1a2233",
 
+	-- ANSI Standard
 	ansi = {
-		palette.black,
-		palette.red,
-		palette.green,
-		palette.yellow,
-		palette.blue,
-		palette.magenta,
-		palette.cyan,
-		palette.white,
+		"#15161e", -- black
+		"#f7768e", -- red
+		"#9ece6a", -- green
+		"#e0af68", -- yellow
+		"#7aa2f7", -- blue
+		"#bb9af7", -- magenta
+		"#7dcfff", -- cyan
+		"#e5e5e5", -- white
 	},
 
+	-- ANSI Bright
 	brights = {
-		palette.bright_black,
-		palette.bright_red,
-		palette.bright_green,
-		palette.bright_yellow,
-		palette.bright_blue,
-		palette.bright_magenta,
-		palette.bright_cyan,
-		palette.bright_white,
+		"#414868", -- bright black (grey)
+		"#ff7a93", -- bright red
+		"#b9f27c", -- bright green
+		"#ffc777", -- bright yellow
+		"#82aaff", -- bright blue
+		"#c099ff", -- bright magenta
+		"#b4f9f8", -- bright cyan
+		"#f5f5f5", -- bright white
 	},
 
-	tab_bar = palette.tab_bar,
+	-- Tab bar colors
+	tab_bar = {
+		background = "#16161e",
+		active_tab = {
+			bg_color = "#1a1b26",
+			fg_color = "#e5e5e5",
+		},
+		inactive_tab = {
+			bg_color = "#24283b",
+			fg_color = "#787c99",
+		},
+		inactive_tab_hover = {
+			bg_color = "#33467c",
+			fg_color = "#e5e5e5",
+		},
+		new_tab = {
+			bg_color = "#24283b",
+			fg_color = "#787c99",
+		},
+		new_tab_hover = {
+			bg_color = "#33467c",
+			fg_color = "#e5e5e5",
+		},
+	},
 }
 
 -- ===========================
@@ -267,7 +294,7 @@ config.keys = {
 		mods = "LEADER",
 		action = act.PromptInputLine({
 			description = "Enter new name for tab",
-			action = wezterm.action_callback(function(window, pane, line)
+			action = wezterm.action_callback(function(window, _pane, line)
 				if line then
 					window:active_tab():set_title(line)
 				end
@@ -279,7 +306,7 @@ config.keys = {
 		mods = "LEADER|SHIFT",
 		action = act.PromptInputLine({
 			description = "Enter new name for tab",
-			action = wezterm.action_callback(function(window, pane, line)
+			action = wezterm.action_callback(function(window, _pane, line)
 				if line then
 					window:active_tab():set_title(line)
 				end
@@ -330,8 +357,8 @@ config.mouse_bindings = {
 -- Tab Bar Customization
 -- ===========================
 -- Tab Bar Customization for Amy's Theme
-wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-	local colors = config.colors
+wezterm.on("format-tab-title", function(tab, _tabs, _panes, cfg, hover, _max_width)
+	local colors = cfg.colors
 
 	-- Determine colors based on state
 	local bg_color = colors.tab_bar.inactive_tab.bg_color
@@ -437,7 +464,7 @@ end)
 -- Tab Bar Drag Handle
 -- ===========================
 -- Add a permanent drag handle on the right side of the tab bar (next to window controls)
-wezterm.on("update-status", function(window, pane)
+wezterm.on("update-status", function(window, _pane)
 	local SOLID_RIGHT_ARROW = utf8.char(0xe0b0)
 
 	local drag_handle = wezterm.format({
