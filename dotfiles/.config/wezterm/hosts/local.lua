@@ -1,49 +1,56 @@
--- Local domains configuration (WSL and PowerShell)
--- Safe to commit - no private information
+-- Local domains configuration
+-- Detects WSL vs native Linux and configures accordingly
 
-return {
-  -- Unix domain for persistent multiplexer (Windows-side)
-  -- Requires wezterm-mux-server running (see README.md for autostart setup)
-  unix_domains = {
-    {
-      name = 'windows-mux',
-      -- Uses default socket path: %USERPROFILE%\.local\share\wezterm\sock
-      socket_path = nil,
-      skip_permissions_check = false,
-      -- Auto-connect when wezterm starts
-      connect_automatically = true,
-    },
-  },
+local is_wsl = os.getenv("WSL_DISTRO_NAME") ~= nil
 
-  -- Default to the persistent multiplexer when available
-  -- Falls back to direct WSL if mux not running
-  default_domain = 'windows-mux',
-
-  -- Default program to run in new panes (WSL in home directory)
-  default_prog = { 'wsl.exe', '~' },
-
-  launch_menu = {
-    {
-      label = 'WSL Ubuntu (Persistent)',
-      domain = { DomainName = 'windows-mux' },
-      args = { 'wsl.exe', '~' },
-    },
-    {
-      label = 'WSL Ubuntu (Direct)',
-      domain = { DomainName = 'WSL:Ubuntu' },
-    },
-    {
-      label = 'PowerShell (Persistent)',
-      domain = { DomainName = 'windows-mux' },
-      args = { 'pwsh.exe', '-NoLogo' },
-    },
-    {
-      label = 'PowerShell (Direct)',
-      args = { 'pwsh.exe', '-NoLogo' },
-    },
-    {
-      label = 'Command Prompt',
-      args = { 'cmd.exe' },
-    },
-  },
-}
+if is_wsl then
+	-- WSL: Use Windows-side mux server
+	return {
+		unix_domains = {
+			{
+				name = "windows-mux",
+				-- Uses default socket path: %USERPROFILE%\.local\share\wezterm\sock
+				connect_automatically = true,
+			},
+		},
+		default_domain = "windows-mux",
+		default_prog = { "wsl.exe", "~" },
+		launch_menu = {
+			{
+				label = "WSL Ubuntu (Persistent)",
+				domain = { DomainName = "windows-mux" },
+				args = { "wsl.exe", "~" },
+			},
+			{
+				label = "WSL Ubuntu (Direct)",
+				domain = { DomainName = "WSL:Ubuntu" },
+			},
+			{
+				label = "PowerShell",
+				domain = { DomainName = "windows-mux" },
+				args = { "pwsh.exe", "-NoLogo" },
+			},
+		},
+	}
+else
+	-- Native Linux: Year of the Linux desktop 🐧
+	return {
+		unix_domains = {
+			{
+				name = "unix",
+				-- Uses default socket path: ~/.local/share/wezterm/sock
+				connect_automatically = true,
+			},
+		},
+		default_domain = "unix",
+		launch_menu = {
+			{
+				label = "Shell (Persistent)",
+				domain = { DomainName = "unix" },
+			},
+			{
+				label = "Shell (Direct)",
+			},
+		},
+	}
+end

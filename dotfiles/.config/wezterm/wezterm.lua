@@ -210,7 +210,10 @@ config.scrollback_lines = 10000
 -- ===========================
 config.automatically_reload_config = true
 config.selection_word_boundary = " \t\n{}[]()\"':;,│"
-config.front_end = "WebGpu"
+-- WebGpu is great on Windows, crashes on some Linux GPU/compositor combos
+if wezterm.target_triple:find("windows") then
+	config.front_end = "WebGpu"
+end
 config.max_fps = 30
 config.audible_bell = "Disabled"
 
