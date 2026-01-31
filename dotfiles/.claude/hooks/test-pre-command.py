@@ -39,8 +39,9 @@ def test(name: str, command: str, expect_blocked: bool, expect_soft: bool = Fals
     """Run a single test case."""
     output, code = run_hook(command)
 
-    blocked = code != 0 or output.get('hookSpecificOutput', {}).get('permissionDecision') == 'deny'
-    msg = output.get('systemMessage', '')
+    hook_output = output.get('hookSpecificOutput', {})
+    blocked = hook_output.get('permissionDecision') == 'deny'
+    msg = hook_output.get('permissionDecisionReason', '')
 
     # Check result
     if expect_blocked and not blocked:
@@ -71,24 +72,27 @@ def test_soft_retry(name: str, command: str):
 
     # First attempt should block
     output1, code1 = run_hook(command)
-    if code1 == 0:
+    hook1 = output1.get('hookSpecificOutput', {})
+    if hook1.get('permissionDecision') != 'deny':
         print(f"❌ {name}: first attempt should block")
         return False
 
     # Second attempt (simulating user approval) should allow
     output2, code2 = run_hook(command)
-    if code2 != 0:
+    hook2 = output2.get('hookSpecificOutput', {})
+    if hook2.get('permissionDecision') != 'allow':
         print(f"❌ {name}: retry should be allowed")
         print(f"   out: {output2}")
         return False
 
-    if '✅' not in output2.get('systemMessage', ''):
+    if '✅' not in hook2.get('permissionDecisionReason', ''):
         print(f"❌ {name}: retry should show approval message")
         return False
 
     # Third attempt should block again (one-time approval consumed)
     output3, code3 = run_hook(command)
-    if code3 == 0:
+    hook3 = output3.get('hookSpecificOutput', {})
+    if hook3.get('permissionDecision') != 'deny':
         print(f"❌ {name}: third attempt should block (approval consumed)")
         return False
 

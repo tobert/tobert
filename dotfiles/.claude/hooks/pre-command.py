@@ -142,36 +142,50 @@ def get_git_status_summary() -> Optional[dict]:
 def deny(message: str):
     """Hard deny - block the command entirely."""
     print(json.dumps({
-        'hookSpecificOutput': {'permissionDecision': 'deny'},
-        'systemMessage': message,
+        'hookSpecificOutput': {
+            'hookEventName': 'PreToolUse',
+            'permissionDecision': 'deny',
+            'permissionDecisionReason': message,
+        },
     }))
-    sys.exit(2)
+    sys.exit(0)
 
 
 def soft_deny(cmd: str, name: str, reason: str):
     """Soft deny - block but cache for retry approval."""
     cache_soft_block(cmd, name)
     print(json.dumps({
-        'hookSpecificOutput': {'permissionDecision': 'deny'},
-        'systemMessage': (
-            f"🛑 `{name}` blocked ({reason}). "
-            f"If intentional, ask the user to confirm before retrying."
-        ),
+        'hookSpecificOutput': {
+            'hookEventName': 'PreToolUse',
+            'permissionDecision': 'deny',
+            'permissionDecisionReason': (
+                f"🛑 `{name}` blocked ({reason}). "
+                f"If intentional, ask the user to confirm before retrying."
+            ),
+        },
     }))
-    sys.exit(2)
+    sys.exit(0)
 
 
 def warn(message: str):
     """Allow but inject a warning message."""
     print(json.dumps({
-        'continue': True,
-        'systemMessage': message,
+        'hookSpecificOutput': {
+            'hookEventName': 'PreToolUse',
+            'permissionDecision': 'allow',
+            'permissionDecisionReason': message,
+        },
     }))
 
 
 def allow():
     """Allow the command."""
-    print(json.dumps({'continue': True}))
+    print(json.dumps({
+        'hookSpecificOutput': {
+            'hookEventName': 'PreToolUse',
+            'permissionDecision': 'allow',
+        },
+    }))
 
 
 def check_patterns(cmd: str, patterns: dict) -> Optional[tuple]:
