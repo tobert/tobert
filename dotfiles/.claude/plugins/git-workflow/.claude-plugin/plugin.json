@@ -1,0 +1,9 @@
+{
+  "name": "git-workflow",
+  "version": "0.1.0",
+  "description": "Streamlined git commit workflow for multi-session development.",
+  "author": {
+    "name": "Amy Tobey",
+    "email": "tobert@gmail.com"
+  }
+}
