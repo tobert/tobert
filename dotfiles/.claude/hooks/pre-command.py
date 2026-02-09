@@ -25,6 +25,7 @@ BLOCKED = {
         (r'\bgit\s+add\s+(-A|--all)\b', 'git add -A/--all', 'Use explicit paths or `git add -p`'),
         (r'\bgit\s+add\s+\.\s*($|[;&|])', 'git add .', 'Use explicit paths or `git add -p`'),
         (r'\bgit\s+commit\s+-[a-zA-Z]*a', 'git commit -a', 'Stage files explicitly first'),
+        (r'\bgit\s+stash\b', 'git stash', 'modifies working tree state across all sessions'),
     ],
 }
 
