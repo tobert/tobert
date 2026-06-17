@@ -195,9 +195,10 @@ augroup go_settings
 augroup END
 
 " vim-go settings (if using vim-go alongside LSP)
-let g:go_fmt_autosave = 0         " Let LSP handle formatting
-let g:go_def_mapping_enabled = 0  " Let LSP handle go-to-definition
+let g:go_fmt_autosave = 0            " Let LSP handle formatting
+let g:go_def_mapping_enabled = 0     " Let LSP handle go-to-definition
 let g:go_doc_keywordprg_enabled = 0
+let g:go_code_completion_enabled = 0 " Let vim-lsp/asyncomplete own omnifunc (no gocode)
 
 " JavaScript/TypeScript
 augroup js_settings
