@@ -9,7 +9,8 @@ local config = wezterm.config_builder()
 -- Font Configuration
 -- ===========================
 config.font = wezterm.font_with_fallback({
-	{ family = "Cascadia Code NF", weight = 200 }, -- ExtraLight
+	{ family = "CaskaydiaCove Nerd Font Mono", weight = 200 }, -- ExtraLight (Homebrew/macOS naming)
+	{ family = "Cascadia Code NF", weight = 200 }, -- ExtraLight (Windows/Linux naming)
 	"Consolas",
 	"Noto Color Emoji",
 	"Symbols Nerd Font Mono",
@@ -21,7 +22,8 @@ config.font_rules = {
 	{
 		intensity = "Bold",
 		font = wezterm.font_with_fallback({
-			{ family = "Cascadia Code NF", weight = 400 }, -- Regular (for bold text)
+			{ family = "CaskaydiaCove Nerd Font Mono", weight = 400 }, -- Regular (Homebrew/macOS naming)
+			{ family = "Cascadia Code NF", weight = 400 }, -- Regular (Windows/Linux naming)
 			"Noto Color Emoji",
 			"Symbols Nerd Font Mono",
 		}),
@@ -210,11 +212,17 @@ config.scrollback_lines = 10000
 -- ===========================
 config.automatically_reload_config = true
 config.selection_word_boundary = " \t\n{}[]()\"':;,│"
--- WebGpu is great on Windows, crashes on some Linux GPU/compositor combos
+-- WebGpu is great on Windows and macOS (Metal), but crashes on some Linux GPU/compositor combos.
+-- On macOS, the OpenGL front_end's default prefer_egl behavior falls back to software rendering
+-- (LIBGL_ALWAYS_SOFTWARE) whenever a new tab/window is opened, which causes visible flickering.
+-- WebGpu avoids that fallback entirely by rendering through Metal.
 if wezterm.target_triple:find("windows") then
 	config.front_end = "WebGpu"
+elseif wezterm.target_triple:find("darwin") then
+	config.front_end = "WebGpu"
+	config.prefer_egl = false
 end
-config.max_fps = 30
+config.max_fps = 60
 config.audible_bell = "Disabled"
 
 -- Hyperlink detection
