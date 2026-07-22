@@ -120,8 +120,20 @@ config.colors = {
 -- SSH backend for all SSH domains
 config.ssh_backend = "Ssh2"
 
+-- Keep SSH_AUTH_SOCK fresh for panes spawned through the local unix-domain
+-- mux server: without this, a long-lived mux-server daemon can hand out a
+-- stale auth socket captured at its own startup. Requires a nightly build
+-- (not yet in a stable wezterm release).
+config.mux_enable_ssh_agent = true
+
 -- Helper function to safely load host configs
+-- Private hosts (e.g. zorak) may not exist on every machine, so a missing
+-- file is expected and silent; only a file that exists but fails to load
+-- gets logged.
 local function load_host_config(name)
+	if #wezterm.glob(name .. ".lua", wezterm.config_dir .. "/hosts") == 0 then
+		return nil
+	end
 	local ok, host_config = pcall(require, "hosts." .. name)
 	if ok then
 		return host_config
