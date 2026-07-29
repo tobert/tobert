@@ -25,8 +25,9 @@ pathprepend() {
     fi
 }
 
-# Start with a clean, predictable base PATH
-PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+if [ -z "$PATH" ] ; then
+    PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+fi
 
 # User binaries first
 pathprepend "$HOME/bin"

@@ -121,6 +121,9 @@ export LESS_TERMCAP_so=$'\033[38;5;120m' # begin standout-mode (matrix green)
 export LESS_TERMCAP_ue=$'\033[0m'        # end underline
 export LESS_TERMCAP_us=$'\033[4;36m'     # begin underline - cyan
 
+if [ -e "${HOME}/bin/rainbow-ps1.bash" ] ; then
+    source "${HOME}/bin/rainbow-ps1.bash"
+fi
 # ============================================================================
 # Local Customizations
 # ============================================================================
