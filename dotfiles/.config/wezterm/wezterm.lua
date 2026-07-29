@@ -195,6 +195,9 @@ end
 -- ===========================
 config.initial_cols = 120
 config.initial_rows = 30
+-- Windows/Linux: integrate the native buttons into the tab bar.
+-- macOS overrides this to "RESIZE" below (title-less, no traffic lights),
+-- since INTEGRATED_BUTTONS expects a top tab bar but ours sits at the bottom.
 config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 config.window_close_confirmation = "NeverPrompt"
 config.tab_bar_at_bottom = true
@@ -233,6 +236,9 @@ if wezterm.target_triple:find("windows") then
 elseif wezterm.target_triple:find("darwin") then
 	config.front_end = "WebGpu"
 	config.prefer_egl = false
+	-- Title-less window with no macOS traffic-light buttons. Close/minimize
+	-- via keyboard (Cmd-W / Cmd-M) or Mission Control; still edge-resizable.
+	config.window_decorations = "RESIZE"
 end
 config.max_fps = 60
 config.audible_bell = "Disabled"
