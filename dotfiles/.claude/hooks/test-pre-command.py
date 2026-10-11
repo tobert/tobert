@@ -130,14 +130,14 @@ def main():
     print("=" * 60)
 
     tests = [
-        ("git commit --amend", "git commit --amend", True, True),
-        ("git push --force", "git push --force origin main", True, True),
+        ("git commit --amend (softened: allowed)", "git commit --amend", False, False),
+        ("git push --force (softened: allowed)", "git push --force origin main", False, False),
         ("git reset --hard", "git reset --hard HEAD~1", True, True),
         ("rm -rf", "rm -rf /tmp/test", True, True),
         ("rm -fr", "rm -fr /tmp/test", True, True),
-        ("find -exec", "find . -name '*.tmp' -exec rm {} \\;", True, True),
-        ("find -execdir", "find . -execdir mv {} {}.bak \\;", True, True),
-        ("find -ok", "find . -ok rm {} \\;", True, True),
+        ("find -exec (softened: allowed)", "find . -name '*.tmp' -exec rm {} \\;", False, False),
+        ("find -execdir (softened: allowed)", "find . -execdir mv {} {}.bak \\;", False, False),
+        ("find -ok (softened: allowed)", "find . -ok rm {} \\;", False, False),
         ("find without exec", "find . -name '*.py'", False, False),
     ]
 
@@ -177,7 +177,7 @@ def main():
     else:
         failed += 1
 
-    if test_soft_retry("find -exec retry", "find /tmp/unique -exec cat {} \\;"):
+    if test("find -exec allowed", "find /tmp/unique -exec cat {} \\;", False, False):
         passed += 1
     else:
         failed += 1

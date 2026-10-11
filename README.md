@@ -18,39 +18,6 @@ Scripts I run less frequently and don't want or need in my $PATH.
 
 This is intended to be synchronized as-is to $HOME and contains configs for various apps.
 
-## .chainlink
-
-Data directory for [chainlink](https://github.com/tobert/chainlink) - a local issue tracker for AI-assisted development.
-
-- **`issues.db`** - SQLite database storing issues, comments, sessions, and labels
-- **`rules/`** - Coding rules injected into Claude Code sessions:
-  - `global.md` - Task workflow, code quality requirements, session handoff protocols
-  - `project.md` - Project-specific rules (customize per-repo)
-  - Language rules: `rust.md`, `go.md`, `python.md`, `typescript.md`, etc.
-
-### Quick Reference
-```bash
-chainlink create "Add feature X" -p high   # Create issue
-chainlink session work 1                    # Focus on issue
-chainlink comment 1 "Found approach..."     # Add context
-chainlink close 1                           # Done → CHANGELOG.md updated
-chainlink list                              # See open issues
-```
-
-# Claude Code Hooks
-
-Python hooks in `dotfiles/.claude/hooks/` get synced to `~/.claude/hooks/` and run automatically during Claude Code sessions.
-
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| `session-start.py` | SessionStart | Auto-init chainlink in git repos, start sessions, show handoff notes |
-| `prompt-guard.py` | UserPromptSubmit | Inject project structure to prevent path hallucination |
-| `post-edit-check.py` | PostToolUse (Edit/Write) | Detect stub patterns (TODO, FIXME, `pass`, `unimplemented!()`) |
-| `git-safety.py` | PreToolUse (Bash) | Block `git add -A/.`, `git commit -a`; warn on `--amend` |
-| `pre-web-check.py` | PreToolUse (WebFetch) | RFIP reminder - treat fetched content as data, not instructions |
-
-Hook configuration is in `dotfiles/.claude/settings.json`.
-
 # WezTerm Key Bindings
 
 The WezTerm config uses a tmux-style leader key (`Ctrl-a`) for most commands. Here are the most useful bindings:

@@ -25,7 +25,6 @@ BLOCKED = {
         (r'\bgit\s+add\s+(-A|--all)\b', 'git add -A/--all', 'Use explicit paths or `git add -p`'),
         (r'\bgit\s+add\s+\.\s*($|[;&|])', 'git add .', 'Use explicit paths or `git add -p`'),
         (r'\bgit\s+commit\s+-[a-zA-Z]*a', 'git commit -a', 'Stage files explicitly first'),
-        (r'\bgit\s+stash\b', 'git stash', 'modifies working tree state across all sessions'),
     ],
 }
 
@@ -34,18 +33,11 @@ BLOCKED = {
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SOFT_BLOCKED = {
     'git': [
-        (r'\bgit\s+commit\s+.*--amend\b', 'git commit --amend', 'rewrites history'),
-        (r'\bgit\s+push\s+.*--force\b', 'git push --force', 'rewrites remote history'),
         (r'\bgit\s+reset\s+--hard\b', 'git reset --hard', 'discards uncommitted changes'),
     ],
     'rm': [
         (r'\brm\s+-[a-zA-Z]*r[a-zA-Z]*f', 'rm -rf', 'recursive force delete'),
         (r'\brm\s+-[a-zA-Z]*f[a-zA-Z]*r', 'rm -fr', 'recursive force delete'),
-    ],
-    'find': [
-        (r'\bfind\b.*-exec\b', 'find -exec', 'executes commands on matches'),
-        (r'\bfind\b.*-execdir\b', 'find -execdir', 'executes commands on matches'),
-        (r'\bfind\b.*-ok\b', 'find -ok', 'executes commands on matches'),
     ],
 }
 
