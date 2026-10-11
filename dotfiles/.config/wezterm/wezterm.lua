@@ -227,7 +227,9 @@ config.scrollback_lines = 10000
 -- ===========================
 config.automatically_reload_config = true
 config.selection_word_boundary = " \t\n{}[]()\"':;,│"
--- WebGpu is great on Windows and macOS (Metal), but crashes on some Linux GPU/compositor combos.
+-- WebGpu is great on Windows and macOS (Metal). On Linux, the wgpu/Wayland presentation
+-- path can stall when kwin stops sending frame callbacks to an occluded/unfocused window,
+-- so force OpenGL there instead.
 -- On macOS, the OpenGL front_end's default prefer_egl behavior falls back to software rendering
 -- (LIBGL_ALWAYS_SOFTWARE) whenever a new tab/window is opened, which causes visible flickering.
 -- WebGpu avoids that fallback entirely by rendering through Metal.
@@ -239,6 +241,8 @@ elseif wezterm.target_triple:find("darwin") then
 	-- Title-less window with no macOS traffic-light buttons. Close/minimize
 	-- via keyboard (Cmd-W / Cmd-M) or Mission Control; still edge-resizable.
 	config.window_decorations = "RESIZE"
+else
+	config.front_end = "OpenGL"
 end
 config.max_fps = 60
 config.audible_bell = "Disabled"
