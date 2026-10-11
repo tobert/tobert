@@ -1,0 +1,49 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["sway/window"],
+    "modules-right": ["pulseaudio", "network", "cpu", "memory", "temperature", "clock", "tray"],
+
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "format": "{name}"
+    },
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    "sway/window": {
+        "max-length": 50
+    },
+    "clock": {
+        "format": "{:%a %b %d  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "cpu": {
+        "format": "CPU {usage}%",
+        "interval": 5
+    },
+    "memory": {
+        "format": "MEM {}%",
+        "interval": 5
+    },
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C"
+    },
+    "network": {
+        "format-wifi": "{essid} ({signalStrength}%)",
+        "format-ethernet": "{ifname}",
+        "format-disconnected": "Disconnected",
+        "tooltip-format": "{ipaddr}/{cidr}"
+    },
+    "pulseaudio": {
+        "format": "VOL {volume}%",
+        "format-muted": "MUTE",
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+    "tray": {
+        "spacing": 10
+    }
+}

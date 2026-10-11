@@ -1,0 +1,23 @@
+# labwc autostart
+
+# Set 1080p@60Hz for Moonlight streaming
+wlr-randr --output HDMI-A-1 --mode 1920x1080@60Hz 2>/dev/null
+
+# Background
+swaybg -c '#1a1b26' >/dev/null 2>&1 &
+
+# Panel
+waybar >/dev/null 2>&1 &
+
+# Notifications
+mako >/dev/null 2>&1 &
+
+# Sunshine (Moonlight streaming) - delay to let labwc fully start
+( sleep 3 ; sunshine >/dev/null 2>&1 ) &
+
+# Idle/lock - disabled for now
+# swayidle -w \
+#     timeout 300 'swaylock -f -c 1a1b26' \
+#     timeout 600 'wlopm --off \*' \
+#     resume 'wlopm --on \*' \
+#     before-sleep 'swaylock -f -c 1a1b26' >/dev/null 2>&1 &

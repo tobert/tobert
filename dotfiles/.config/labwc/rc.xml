@@ -1,0 +1,80 @@
+<!-- labwc config - Amy's Theme -->
+<labwc_config>
+
+  <core>
+    <gap>8</gap>
+  </core>
+
+  <theme>
+    <name>Amy</name>
+    <cornerRadius>8</cornerRadius>
+    <font name="JetBrains Mono" size="10" />
+  </theme>
+
+  <keyboard>
+    <default />
+    <!-- Alt+Enter: Terminal (Alt works over Moonlight, Win doesn't) -->
+    <keybind key="A-Return">
+      <action name="Execute" command="foot" />
+    </keybind>
+    <!-- Alt+D: App launcher -->
+    <keybind key="A-d">
+      <action name="Execute" command="wofi --show drun" />
+    </keybind>
+    <!-- Alt+Q: Close window -->
+    <keybind key="A-q">
+      <action name="Close" />
+    </keybind>
+    <!-- Alt+F: Fullscreen -->
+    <keybind key="A-f">
+      <action name="ToggleFullscreen" />
+    </keybind>
+    <!-- Alt+M: Maximize -->
+    <keybind key="A-m">
+      <action name="ToggleMaximize" />
+    </keybind>
+    <!-- Alt+`: Window switching (Alt+Tab captured by Windows over Moonlight) -->
+    <keybind key="A-grave">
+      <action name="NextWindow" />
+    </keybind>
+    <!-- Alt+Shift+`: Reverse window switching -->
+    <keybind key="A-S-grave">
+      <action name="PreviousWindow" />
+    </keybind>
+    <!-- Alt+Escape: Show root menu -->
+    <keybind key="A-Escape">
+      <action name="ShowMenu" menu="root-menu" />
+    </keybind>
+    <!-- Print: Screenshot -->
+    <keybind key="Print">
+      <action name="Execute" command="grim - | wl-copy" />
+    </keybind>
+    <!-- Alt+L: Lock screen -->
+    <keybind key="A-l">
+      <action name="Execute" command="swaylock -f -c 1a1b26" />
+    </keybind>
+    <!-- Disable W-F4 -->
+    <keybind key="W-F4">
+      <action name="None" />
+    </keybind>
+  </keyboard>
+
+  <mouse>
+    <default />
+    <!-- Right-click desktop: App menu -->
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu" menu="root-menu" />
+      </mousebind>
+    </context>
+  </mouse>
+
+  <windowRules>
+    <!-- Firefox Picture-in-Picture -->
+    <windowRule identifier="firefox" title="Picture-in-Picture">
+      <skipTaskbar>yes</skipTaskbar>
+      <property name="fixedPosition" value="yes" />
+    </windowRule>
+  </windowRules>
+
+</labwc_config>

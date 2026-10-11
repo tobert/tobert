@@ -1,0 +1,98 @@
+/* Amy's Theme - Tokyo Night based */
+* {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+}
+
+window#waybar {
+    background-color: #1a1b26;
+    color: #e5e5e5;
+    border-bottom: 2px solid #24283b;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    background-color: transparent;
+    color: #787c99;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button:hover {
+    background-color: #24283b;
+}
+
+#workspaces button.focused {
+    color: #7aa2f7;
+    border-bottom: 2px solid #7aa2f7;
+}
+
+#workspaces button.urgent {
+    color: #f7768e;
+    border-bottom: 2px solid #f7768e;
+}
+
+#mode {
+    color: #e0af68;
+    font-style: italic;
+}
+
+#window {
+    color: #e5e5e5;
+}
+
+#clock,
+#cpu,
+#memory,
+#temperature,
+#network,
+#pulseaudio,
+#tray {
+    padding: 0 10px;
+    color: #e5e5e5;
+}
+
+#cpu {
+    color: #9ece6a;
+}
+
+#memory {
+    color: #7dcfff;
+}
+
+#temperature {
+    color: #e0af68;
+}
+
+#temperature.critical {
+    color: #f7768e;
+}
+
+#network {
+    color: #bb9af7;
+}
+
+#network.disconnected {
+    color: #f7768e;
+}
+
+#pulseaudio {
+    color: #7aa2f7;
+}
+
+#pulseaudio.muted {
+    color: #414868;
+}
+
+#clock {
+    color: #e5e5e5;
+    font-weight: bold;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: #f7768e;
+}
